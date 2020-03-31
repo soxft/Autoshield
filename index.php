@@ -14,6 +14,7 @@ class bt_main {
         $data = json_decode($this->safe,true);
         $this->waittime = $data['waittime'];
         $this->sleeptime = $data['sleeptime'];
+        $this->checktime = $data['checktime'];
         $data = json_decode($this->setting,true);
         $this->bturl = $data['bturl'];
         $this->btkey = $data['btkey'];
@@ -91,6 +92,11 @@ class bt_main {
                     <input id='sleeptime' placeholder='10' type='number' class='bt-input-text mr5' value='$this->sleeptime' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 每多少秒检测一次服务器负载(单位:秒)</span>
                 </div>
             </div>
+            <div class='line'><span class='tname'>检测时间</span>
+                <div class='info-r'>
+                    <input id='checktime' placeholder='100' type='number' class='bt-input-text mr5' value='$this->checktime' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 连续超过安全负载多长时间自动开盾(单位:秒)</span>
+                </div>
+            </div>
             <div class='line'>
                 <span class='tname'></span>
                     <div class='info-r'>
@@ -125,6 +131,7 @@ class bt_main {
             <div class='plugin_about'>
                 <img src='https://cdn.jsdelivr.net/gh/soxft/cdn@master/team/team.png' width='500px' alt='XUSOFT'>
                 <p><b>插件名称：</b>cloudflare自动开盾</p>
+                <p><b>版本：v1.2</p>
                 <p><b>使用说明：</b>当服务器负载超过安全负载时,自动启动Cloudflare 5秒盾,来防止服务器宕机</p>
                 <p><b>官网：</b><a class='btlink' href='http://xsot.cn' target='_blank'>http://xsot.cn</a></p>
                 <p><b>插件作者：</b>xcsoft</p>
@@ -148,14 +155,15 @@ class bt_main {
     }
 
     public function setSafe() {
-        if(floor(_post('waittime')) !== (double)_post('waittime') || floor(_post('sleeptime')) !== (double)_post('sleeptime') || (double)_post('sleeptime') < 1 || (double)_post('waittime') < 1)
+        if(floor(_post('checktime')) !== (double)_post('checktime') || floor(_post('waittime')) !== (double)_post('waittime') || floor(_post('sleeptime')) !== (double)_post('sleeptime') || (double)_post('sleeptime') < 1 || (double)_post('waittime') < 1 || (double)_post('checktime') < 1)
         {
             //判断是否为整数
-            return "等待周期和检测时间只能为大于1的整数!";
+            return "所有数据只能为大于1的整数!";
         }
         $data = array(
             "waittime" => _post('waittime'),
             "sleeptime" => _post('sleeptime'),
+            "checktime" => _post('checktime')
         );
         $file = new file;
         $json = json_encode($data);

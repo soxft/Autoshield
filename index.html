@@ -101,7 +101,7 @@
         {
             layer.msg('请确认表单是否填写完整', { icon: 2});
         }else{
-        request_plugin('autoshield', 'setData', { "cfkey" : cfkey , "cfemail" : cfemail }, function (rdata) {
+        request_plugin('autoshield', 'setData', { "cfkey": cfkey , "cfemail": cfemail }, function (rdata) {
             if(rdata == "200")
             {
                 layer.msg('保存成功', { icon: 1});
@@ -116,11 +116,12 @@
         layer.msg('加载中...', { icon: 16,time: 0, shade: 0.3 });
         var waittime = $("#waittime").val()
         var sleeptime = $("#sleeptime").val()
-        if(isNull(waittime) || isNull(sleeptime))
+        var checktime = $("#checktime").val()
+        if(isNull(waittime) || isNull(sleeptime) || isNull(checktime))
         {
             layer.msg('请确认表单是否填写完整', { icon: 2});
         }else{
-        request_plugin('autoshield', 'setSafe', { "waittime" : waittime, "sleeptime" : sleeptime }, function (rdata) {
+        request_plugin('autoshield', 'setSafe', { "waittime": waittime, "sleeptime": sleeptime, "checktime": checktime }, function (rdata) {
             if(rdata == "200")
             {
                 layer.msg('保存成功', { icon: 1});
