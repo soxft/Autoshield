@@ -1,0 +1,9 @@
+{
+  "title": "cloudflare自动开盾",
+  "name": "autoshield",
+  "ps": "当服务器负载过高时,自动打开cloudflare5秒盾",
+  "versions": "1.0",
+  "checks": "/www/server/panel/plugin/autoshield",
+  "author": "xcsoft",
+  "home": "https://xsot.cn"
+}

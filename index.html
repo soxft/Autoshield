@@ -1,0 +1,217 @@
+<style>
+    /*样式写这里*/
+    .autoshield-table table tbody tr td span{
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width:580px;
+        display:block;
+    }
+
+.plugin_about {
+    padding: 15px 30px;
+    line-height: 26px;
+    background: #f0f0f1;
+    border-radius: 5px;
+    border: 1px solid #ffffff;
+}
+</style>
+<div class="bt-form">
+    <div class="bt-w-main">
+        <!--菜单部分-->
+        <div class="bt-w-menu">
+            <p class="bgw" onclick="autoshield.get_index()">概览</p>
+            <p onclick="autoshield.get_setting()">密钥设置</p>
+            <p onclick="autoshield.get_safe()">防护设置</p>
+            <p onclick="autoshield.get_runlog()">运行日志</p>
+            <p onclick="autoshield.get_errorlog()">错误日志</p>
+            <p onclick="autoshield.get_about()">关于</p>
+        </div>
+        <!--内容部分-->
+        <div class="bt-w-con pd15">
+            <div class="plugin_body"></div>
+        </div>
+    </div>
+</div>
+
+<!--JS脚本部分，不要将JS脚本写在其它地方-->
+<script type="text/javascript">
+
+    //定义窗口尺寸
+    $('.layui-layer-page').css({ 'width': '700px' });
+
+    //左测菜单切换效果
+    $(".bt-w-menu p").click(function () {
+        $(this).addClass('bgw').siblings().removeClass('bgw')
+    });
+
+    /**
+     * 插件交互对象
+     * 您的所有JS代码可以写在里面
+     * 若不习惯JS的面向对象编程，可删除此对象，使用传统函数化的方式编写
+     * */
+    var autoshield = {
+        //构造概览内容
+        get_index: function(){
+            request_plugin('autoshield', 'get_index', { "funcname" : "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+            });
+        },
+        get_setting: function(){
+            request_plugin('autoshield', 'get_setting', { "funcname" : "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+            });
+        },
+         get_about: function(){
+            request_plugin('autoshield', 'get_about', { "funcname" : "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+            });
+        },
+        get_safe: function(){
+            request_plugin('autoshield', 'get_safe', { "funcname" : "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+            });
+        },
+        get_errorlog: function(){
+            request_plugin('autoshield', 'get_errorlog', { "funcname" : "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+            });
+        },
+        get_runlog: function(){
+            request_plugin('autoshield', 'get_runlog', { "funcname" : "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+            });
+        },
+    }
+
+    function isNull(data){ 
+        if(data == "" || data == undefined || data == null)
+        {
+            return true;
+        }else{
+            return false;
+        }
+    }
+    /*保存密钥信息*/
+    function save_data_setting(){
+        layer.msg('加载中...', { icon: 16,time: 0, shade: 0.3 });
+        var cfkey = $("#cfkey").val()
+        var cfemail = $("#cfemail").val()
+        if(isNull(cfkey) || isNull(cfemail))
+        {
+            layer.msg('请确认表单是否填写完整', { icon: 2});
+        }else{
+        request_plugin('autoshield', 'setData', { "cfkey" : cfkey , "cfemail" : cfemail }, function (rdata) {
+            if(rdata == "200")
+            {
+                layer.msg('保存成功', { icon: 1});
+            }else{
+                layer.msg(rdata, { icon: 2});
+            }
+        });
+        }
+    }
+    
+     function save_data_safe(){
+        layer.msg('加载中...', { icon: 16,time: 0, shade: 0.3 });
+        var waittime = $("#waittime").val()
+        var sleeptime = $("#sleeptime").val()
+        if(isNull(waittime) || isNull(sleeptime))
+        {
+            layer.msg('请确认表单是否填写完整', { icon: 2});
+        }else{
+        request_plugin('autoshield', 'setSafe', { "waittime" : waittime, "sleeptime" : sleeptime }, function (rdata) {
+            if(rdata == "200")
+            {
+                layer.msg('保存成功', { icon: 1});
+            }else{
+                layer.msg(rdata, { icon: 2});
+            }
+        });
+        }
+    }
+    
+    function start(){
+        layer.msg('开启中...', { icon: 16,time: 0, shade: 0.3 });
+        request_plugin('autoshield', 'start','', function (rdata) {
+            if(rdata == "200")
+            {
+                layer.msg('开启成功', { icon: 1});
+                setTimeout(function(){  //使用  setTimeout（）方法设定定时2000毫秒
+                    window.location.reload();//页面刷新
+                },2000);
+            }else if(rdata == "1001")
+                {
+                     layer.msg('服务已启动', { icon: 2});
+                }else{
+                layer.msg('开启失败,请检查是否启用了exec_shell函数', { icon: 2});
+            }
+        });
+    }
+    
+    function stop(){
+        layer.msg('关闭中...', { icon: 16,time: 0, shade: 0.3 });
+        request_plugin('autoshield', 'stop','', function (rdata) {
+            if(rdata == "200")
+            {
+                layer.msg('关闭成功', { icon: 1});
+                setTimeout(function(){  //使用  setTimeout（）方法设定定时2000毫秒
+                    window.location.reload();//页面刷新
+                },2000);
+            }else{
+                layer.msg('关闭失败,请检查是否启用了exec_shell函数', { icon: 2});
+            }
+        });
+    }
+    
+    function restart(){
+        layer.msg('重启中...', { icon: 16,time: 0, shade: 0.3 });
+        request_plugin('autoshield', 'restart','', function (rdata) {
+            if(rdata == "200")
+            {
+                layer.msg('重启成功', { icon: 1});
+                setTimeout(function(){  //使用  setTimeout（）方法设定定时2000毫秒
+                    window.location.reload();//页面刷新
+                },2000);
+            }else{
+                layer.msg('重启失败,请检查是否启用了exec_shell函数', { icon: 2});
+            }
+        });
+    }
+    
+    /**
+     * 发送请求到插件
+     * 注意：除非你知道如何自己构造正确访问插件的ajax，否则建议您使用此方法与后端进行通信
+     * @param plugin_name    插件名称 如：autoshield
+     * @param function_name  要访问的方法名，如：get_logs
+     * @param args           传到插件方法中的参数 请传入数组，示例：{p:1,rows:10,callback:"autoshield.get_logs"}
+     * @param callback       请传入处理函数，响应内容将传入到第一个参数中
+     */
+    function request_plugin(plugin_name, function_name, args, callback, timeout) {
+        if (!timeout) timeout = 3600;
+        $.ajax({
+            type:'POST',
+            url: '/plugin?action=a&s=' + function_name + '&name=' + plugin_name,
+            data: args,
+            timeout:timeout,
+            success: function(rdata) {
+                if (!callback) {
+                    layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+                    return;
+                }
+                return callback(rdata);
+            },
+            error: function(ex) {
+                if (!callback) {
+                    layer.msg('请求过程发现错误!', { icon: 2 });
+                    return;
+                }
+                return callback(ex);
+            }
+        });
+    }
+
+    //第一次打开窗口时调用
+    autoshield.get_index();
+
+</script>
