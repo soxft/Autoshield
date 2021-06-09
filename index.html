@@ -1,0 +1,618 @@
+<style>
+    /*样式写这里*/
+    .autoshield-table table tbody tr td span{
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width:580px;
+        display:block;
+    }
+    .plugin_about {
+        padding: 15px 30px;
+        line-height: 26px;
+        background: #f0f0f1;
+        border-radius: 5px;
+        border: 1px solid #ffffff;
+    }
+    .butt {
+        display: inline-block;
+        padding-top: 0;
+        height: 1.4em;
+        margin-bottom: 0
+    }
+</style>
+<div class="bt-form">
+    <div class="bt-w-main">
+        <!--菜单部分-->
+        <div class="bt-w-menu">
+            <p class="bgw" onclick="autoshield.get_index()">概览</p>
+            <p onclick="autoshield.get_setting()">密钥设置</p>
+            <p onclick="autoshield.get_safe()">防护设置</p>
+            <p onclick="autoshield.get_domain()">域名管理</p>
+            <p onclick="autoshield.get_runlog()">运行日志</p>
+            <p onclick="autoshield.get_errorlog()">错误日志</p>
+            <p onclick="autoshield.get_about()">关于</p>
+        </div>
+        <!--内容部分-->
+        <div class="bt-w-con pd15">
+            <div class="plugin_body"></div>
+        </div>
+    </div>
+</div>
+<!--JS脚本部分，不要将JS脚本写在其它地方-->
+<script type="text/javascript">
+
+    //定义窗口尺寸
+    $('.layui-layer-page').css({ 'width': '700px' });
+
+    //左测菜单切换效果
+    $(".bt-w-menu p").click(function () {
+        $(this).addClass('bgw').siblings().removeClass('bgw')
+    });
+
+    /**
+     * 插件交互对象
+     * 您的所有JS代码可以写在里面
+     * 若不习惯JS的面向对象编程，可删除此对象，使用传统函数化的方式编写
+     * */
+    var autoshield = {
+        //构造概览内容
+        get_index: function(){
+            var index = layer.msg('正在处理,请稍后...', { icon: 16,time: 0  });
+            request_plugin('autoshield', 'get_index', { "funcname" : "get_index" }, function (rdata) {
+                    $('.plugin_body').html(rdata);
+                layer.close(index)
+            });
+        },
+        get_setting: function(){
+            var index = layer.msg('正在处理,请稍后...', { icon: 16,time: 0  });
+            request_plugin('autoshield', 'get_setting', { "funcname" : "get_index" }, function (rdata) {
+                    $('.plugin_body').html(rdata);
+                layer.close(index)
+            });
+        },
+         get_about: function(){
+            var index = layer.msg('正在处理,请稍后...', { icon: 16,time: 0  }); 
+            request_plugin('autoshield', 'get_about', { "funcname" : "get_index" }, function (rdata) {
+                    $('.plugin_body').html(rdata);
+                layer.close(index)
+            });
+        },
+        
+        get_safe: function(){
+            var index = layer.msg('正在处理,请稍后...', { icon: 16,time: 0  });
+            request_plugin('autoshield', 'get_safe', { "funcname" : "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+                layer.close(index)
+            });
+        },
+
+        get_domain: function(){
+            var index = layer.msg('正在处理,请稍后...', { icon: 16,time: 0  });
+            request_plugin('autoshield', 'get_domain', { "funcname" : "get_index" }, function (rdata) {
+                    $('.plugin_body').html(rdata);
+                layer.close(index)
+            });
+        },
+        get_errorlog: function(){
+            var index = layer.msg('正在处理,请稍后...', { icon: 16,time: 0  });
+            request_plugin('autoshield', 'get_errorlog', { "funcname" : "get_index" }, function (rdata) {
+                    $('.plugin_body').html(rdata);
+                layer.close(index)
+            });
+        },
+        get_runlog: function(){
+            var index = layer.msg('正在处理,请稍后...', { icon: 16,time: 0  });
+            request_plugin('autoshield', 'get_runlog', { "funcname" : "get_index" }, function (rdata) {
+                    $('.plugin_body').html(rdata);
+                layer.close(index)
+            });
+        },
+        }
+
+    function isNull(data){ 
+      //判断字符串是否为空
+        if(data == "" || data == undefined || data == null)
+        {
+            return true;
+        }else{
+            return false;
+        }
+    }
+    /*保存密钥信息*/
+    function save_data_setting(){
+        layer.msg('加载中...', { icon: 16,time: 0, shade: 0.3 });
+        var cfkey = $("#cfkey").val()
+        var cfemail = $("#cfemail").val()
+        if(isNull(cfkey) || isNull(cfemail))
+        {
+            layer.msg('请确认表单是否填写完整', { icon: 2});
+        }else{
+            layer.msg('获取域名列表中...', { icon: 16,time: 0, shade: 0.3 });
+            request_plugin('autoshield', 'getZone', { "cfkey": cfkey , "cfemail": cfemail }, function (rdata) {
+            if(rdata == 200)
+            {
+                layer.msg('获取域名防御等级中...', { icon: 16,time: 0, shade: 0.3 });
+                request_plugin('autoshield', 'getSecurity','', function (rdata) {
+                    if(rdata == 200)
+                    {
+                        layer.msg('保存成功!', { icon: 1});
+                        request_plugin('autoshield', 'restart','', function (rdata) {});
+                        //重启
+                    }else{
+                        layer.msg(rdata, { icon: 2 }); //获取失败,请重试...
+                    }
+                });
+            }else{
+                layer.msg('cloudflare请求失败,详见错误日志', { icon: 2});
+            }
+        });
+        }
+    }
+    
+     function save_data_safe(){
+        layer.msg('加载中...', { icon: 16,time: 0, shade: 0.3 });
+        var waittime = $("#waittime").val()
+        var sleeptime = $("#sleeptime").val()
+        var checktime = $("#checktime").val()
+        if(isNull(waittime) || isNull(sleeptime) || isNull(checktime))
+        {
+            layer.msg('请确认表单是否填写完整', { icon: 2});
+        }else{
+        request_plugin('autoshield', 'setSafe', { "waittime": waittime, "sleeptime": sleeptime, "checktime": checktime }, function (rdata) {
+            if(rdata == "200")
+            {
+                layer.msg('保存成功', { icon: 1});
+                request_plugin('autoshield', 'restart','', function (rdata) {});
+                //重启
+            }else{
+                layer.msg(rdata, { icon: 2});
+            }
+        });
+        }
+    }
+    
+    function update_domain()
+    {
+            layer.msg('获取域名列表中...', { icon: 16,time: 0, shade: 0.3 });
+            request_plugin('autoshield', 'updateZone','', function (rdata) {
+            if(rdata == 200)
+            {
+                layer.msg('获取域名防御状态中...', { icon: 16,time: 0, shade: 0.3 });
+                request_plugin('autoshield', 'getSecurity','', function (rdata) {
+                    if(rdata == 200)
+                    {
+                        request_plugin('autoshield', 'get_domain', { "funcname" : "get_index" }, function (rdata) {
+                            $('.plugin_body').html(rdata);
+                        layer.msg('更新成功!', { icon: 1});
+                        });
+                    }else{
+                        layer.msg(rdata, { icon: 2 }); //获取失败,请重试...
+                    }
+                });
+            }else{
+                layer.msg('cloudflare请求失败,详见错误日志', { icon: 2});
+            }
+        });
+    }
+    
+    function update_security()
+    {
+        layer.msg('获取域名防御状态中...', { icon: 16,time: 0, shade: 0.3 });
+        request_plugin('autoshield', 'getSecurity','', function (rdata) {
+        if(rdata == 200)
+        {
+            request_plugin('autoshield', 'get_domain', { "funcname" : "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+                    layer.msg('更新成功!', { icon: 1});
+                });
+        }else{
+            layer.msg(rdata, { icon: 2 }); //获取失败,请重试...
+        }
+        });
+    }
+    
+    function set_security(domain,zone,security) 
+    {
+        securitylist = layer.open({
+            type: 1,
+            title: "设置防御等级【" + domain + "】",
+            area: '300px',
+            closeBtn: 2,
+            shadeClose: false,
+            content: '<form class="bt-form pd20 pb70">\
+                        <div class="line">\
+                                <span class="tname">防御等级</span>\
+                            <div class="info-r">\
+                                <select id="security" class="bt-input-text mr5" style="width:150px;">\
+                                    <option value="essentially_off" '+ (security == 'essentially_off' ? 'selected' : '') + '>本质上为关</option>\
+                                    <option value="low" '+ (security == 'low' ? 'selected' : '') + '>低</option>\
+                                    <option value="medium" '+ (security == 'medium' ? 'selected' : '') + '>中</option>\
+                                    <option value="high" '+ (security == 'high' ? 'selected' : '') + '>高</option>\
+                                    <option value="under_attack" '+ (security == 'under_attack' ? 'selected' : '') + '>开盾</option>\
+                                </select>\
+                            </div>\
+                        </div>\
+                        <div class="bt-form-submit-btn">\
+                            <button type="button" class="btn btn-success btn-sm btn-title" onclick="set_security_submit(\''+ zone + '\')">确定</button>\
+                        </div>\
+                    </form>'
+        });
+    }
+    
+    function set_security_submit(zone) 
+    { 
+        layer.msg('设置中...', { icon: 16,time: 0 });
+        var security = $("#security").val()
+        request_plugin('autoshield', 'setSecurity',{ 'zone': zone,'security': security } , function (rdata) {
+        if(rdata == 200)
+        {
+            request_plugin('autoshield', 'get_domain', { "funcname" : "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+                    layer.msg('修改成功!', { icon: 1});
+                });
+        }else{
+            layer.msg(rdata, { icon: 2 }); //获取失败,请重试...
+        }
+        });
+    }
+    
+    function domain_dns(domain,zone)
+    {
+        var index = layer.msg('获取中...', { icon: 16,time: 0 });
+            request_plugin('autoshield', 'get_domain_dns', { "funcname" : "get_domain_dns","domain": domain, "zone": zone }, function (rdata) {
+               $('.plugin_body').html(rdata);
+            layer.close(index)
+        });
+    }
+    
+    function update_domain_dns(domain,zone)
+    {
+        var index = layer.msg('更新域名解析列表中...', { icon: 16,time: 0 });
+            request_plugin('autoshield', 'refresh_domain_dns', { "funcname" : "refresh_domain_dns","domain": domain, "zone": zone }, function (rdata) {
+               if (rdata !== 'ready') {
+                   layer.msg(rdata, {
+                       icon: 2
+                   }); //获取失败,请重试... 
+               } else {
+                   layer.close(index)
+                   domain_dns(domain, zone);
+                   //刷新页面
+               }
+
+        });
+    }
+    
+    function get_domain_list()
+    {
+      //获取域名列表函数
+        var index = layer.msg('正在处理,请稍后...', { icon: 16,time: 0  });
+            request_plugin('autoshield', 'get_domain', { "funcname" : "get_index" }, function (rdata) {
+                    $('.plugin_body').html(rdata);
+                layer.close(index)
+            });
+    }
+    
+    function domain_dns_edit(domain,type,name,content,ttl,proxied,zone,id)
+    {
+        //修改已有域名解析类  
+        if(proxied == "1")
+        {
+            proxied = "checked=''";
+        }else{
+            proxied = "off";    
+        }
+        
+        layerx = layer.open({
+            type: 1,
+            title: "修改域名解析【" + name + "】",
+            area: '450px',
+            closeBtn: 2,
+            shadeClose: false,
+            content: '<form class="bt-form pd20 pb70">\
+                        <div class="line">\
+                                <span class="tname">解析类型</span>\
+                            <div class="info-r">\
+                                <select id="type" class="bt-input-text mr5" style="width:150px;">\
+                                    <option value="A" '+ (type == 'A' ? 'selected' : '') + '>A</option>\
+                                    <option value="AAAA" '+ (type == 'AAAA' ? 'selected' : '') + '>AAAA</option>\
+                                    <option value="CNAME" '+ (type == 'CNAME' ? 'selected' : '') + '>CNAME</option>\
+                                    <option value="MX" '+ (type == 'MX' ? 'selected' : '') + '>MX</option>\
+                                    <option value="TXT" '+ (type == 'TXT' ? 'selected' : '') + '>TXT</option>\
+                                </select>\
+                            </div>\
+                        </div>\
+                        <div class="line">\
+                                <span class="tname">名称</span>\
+                            <div class="info-r">\
+                                    <input id="name" type="text" placeholder="'+ name +'" class="bt-input-text mr5" value="'+ name +'" style="width: 100px;"> <span style="color: rgb(153, 153, 153);">* 记录值 / Use @ for root</span>\
+                            </div>\
+                        </div>\
+                        <div class="line">\
+                                <span class="tname">内容</span>\
+                            <div class="info-r">\
+                                    <input id="content" placeholder="'+ content +'" type="text" class="bt-input-text mr5" value="'+ content +'" style="width: 100px;"> <span style="color: rgb(153, 153, 153);">* 解析地址</span>\
+                            </div>\
+                        </div>\
+                        <div class="line">\
+                                <span class="tname">TTL</span>\
+                            <div class="info-r">\
+                                    <input id="ttl" placeholder="30" type="text" class="bt-input-text mr5" value="'+ ttl +'" style="width: 100px;"> <span style="color: rgb(153, 153, 153);">* 生存时间</span>\
+                            </div>\
+                        </div>\
+                        <div class="line">\
+                            <span class="tname">CDN</span>\
+                                <div class="butt" style="margin-left:0">\
+                                <input class="btswitch btswitch-ios" id="proxied" type="checkbox" ' + proxied + '>\
+                                <label class="btswitch-btn" for="proxied"></label>\
+                            </div> <span style="color: rgb(153, 153, 153);"> * 是否使用代理</span> \
+                        </div>\
+                        <div class="bt-form-submit-btn">\
+                            <button type="button" class="btn btn-sm btn-title" style="background:#DDDDDD" onclick="domain_dns_del_submit(\'' + zone + '\',\'' + id + '\',\'' + domain + '\',\'' + name + '\')">删除</button>\
+                            <button type="button" class="btn btn-success btn-sm btn-title" onclick="domain_dns_edit_submit(\'' + zone + '\',\'' + id + '\',\'' + domain + '\')">确定</button>\
+                        </div>\
+                    </form>'
+        });
+    }
+    
+    function domain_dns_del_submit(zone,id,domain,name)
+    {
+    //域名解析记录删除类  
+      corfirm = layer.open({
+            type: 1,
+            title: "是否删除【" + domain + "】",
+            area: '300px',
+            closeBtn: 2,
+            shadeClose: false,
+            content: '<form class="bt-form pd20 pb70">\
+                        <div class="line">\
+                                <center><h3><strong>是否确认删除域名解析</strong></h3></center>\
+                        </div>\
+                        <div class="bt-form-submit-btn">\
+                            <button type="button" class="btn btn-success btn-sm btn-title" onclick="corfirm_del(\'' + zone + '\',\'' + domain + '\',\'' + id + '\')">确定</button>\
+                        </div>\
+                    </form>'
+        });
+    }
+    
+    function domain_dns_edit_submit(zone,id,domain)
+    {
+      //域名解析修改类
+      var type = $("#type").val()
+      var name = $("#name").val()
+      var content = $("#content").val()
+      var ttl = $("#ttl").val()
+      var proxied = $("#proxied").is(':checked');
+      //console.log(type +  ' ' + name +  ' ' +  ' ' + content +  ' ' + ttl + ' ' + proxied)
+      //调试
+      
+      layer.msg('处理中...', { icon: 16,time: 0 });
+      request_plugin('autoshield', 'editDns',{'id': id, 'domain': domain ,'zone': zone,'type': type, 'namex': name, 'content': content, 'ttl': ttl, 'proxied': proxied } , function (rdata) {
+        if(rdata == 200)
+        {
+            layer.msg('加载中...', { icon: 16,time: 0 });
+            request_plugin('autoshield', 'get_domain_dns', { "funcname" : "get_domain_dns","domain": domain, "zone": zone }, function (rdata) {
+               $('.plugin_body').html(rdata);
+               layer.msg('设置成功!', { icon: 1});
+               layer.close(add)
+        });
+        }else{
+            layer.msg(rdata, { icon: 2 }); //获取失败,请重试...
+        }
+        });
+        
+    }
+    
+    function corfirm_del(zone,domain,id)
+    {
+      //确认删除类
+      layer.msg('处理中', { icon: 16,time: 0 });
+      request_plugin('autoshield', 'delDns', { "funcname" : "delDns","domain": domain, "zone": zone ,"id": id}, function (rdata) {
+      if (rdata == 200) {
+        layer.msg('加载中...', { icon: 16,time: 0 });
+        request_plugin('autoshield', 'get_domain_dns', { "funcname" : "get_domain_dns","domain": domain, "zone": zone }, function (rdata) {
+          $('.plugin_body').html(rdata);
+          layer.msg('删除成功!', { icon: 1});
+          layer.close(corfirm)
+          layer.close(layerx)
+        });
+        } else {
+        layer.msg(rdata, {icon: 2}); //获取失败,请重试... 
+        }
+        }); 
+    }
+    
+    function add_domain_dns(domain,zone)
+    {
+        //修改已有域名解析类  
+        add = layer.open({
+            type: 1,
+            title: "新增域名解析【" + domain + "】",
+            area: '450px',
+            closeBtn: 2,
+            shadeClose: false,
+            content: '<form class="bt-form pd20 pb70">\
+                        <div class="line">\
+                                <span class="tname">解析类型</span>\
+                            <div class="info-r">\
+                                <select id="type" class="bt-input-text mr5" style="width:150px;">\
+                                    <option value="A">A</option>\
+                                    <option value="AAAA")>AAAA</option>\
+                                    <option value="cname">cname</option>\
+                                    <option value="mx">mx</option>\
+                                    <option value="txt">txt</option>\
+                                </select>\
+                            </div>\
+                        </div>\
+                        <div class="line">\
+                                <span class="tname">名称</span>\
+                            <div class="info-r">\
+                                    <input id="name" placeholder="www.' + domain + '" type="text" class="bt-input-text mr5" style="width: 100px;"> <span style="color: rgb(153, 153, 153);">* 记录值 / Use @ for root</span>\
+                            </div>\
+                        </div>\
+                        <div class="line">\
+                                <span class="tname">内容</span>\
+                            <div class="info-r">\
+                                    <input id="content" placeholder="1.1.1.1" type="text" class="bt-input-text mr5" style="width: 100px;"> <span style="color: rgb(153, 153, 153);">* 解析地址</span>\
+                            </div>\
+                        </div>\
+                        <div class="line">\
+                                <span class="tname">TTL</span>\
+                            <div class="info-r">\
+                                    <input id="ttl" placeholder="30" type="text" class="bt-input-text mr5" style="width: 100px;"> <span style="color: rgb(153, 153, 153);">* 生存时间(单位:秒)</span>\
+                            </div>\
+                        </div>\
+                        <div class="line">\
+                            <span class="tname">CDN</span>\
+                                <div class="butt" style="margin-left:0">\
+                                <input class="btswitch btswitch-ios" id="proxied" type="checkbox">\
+                                <label class="btswitch-btn" for="proxied"></label>\
+                            </div> <span style="color: rgb(153, 153, 153);"> * 是否使用代理</span> \
+                        </div>\
+                        <div class="bt-form-submit-btn">\
+                            <button type="button" class="btn btn-success btn-sm btn-title" onclick="domain_dns_add_submit(\'' + zone + '\',\'' + domain + '\')">确定</button>\
+                        </div>\
+                    </form>'
+        });
+        
+    }
+    
+    function domain_dns_add_submit(zone,domain)
+    {
+      //域名添加处理函数
+      var type = $("#type").val()
+      var name = $("#name").val()
+      var content = $("#content").val()
+      var ttl = $("#ttl").val()
+      var proxied = $("#proxied").is(':checked');
+      //console.log(type +  ' ' + name +  ' ' +  ' ' + content +  ' ' + ttl + ' ' + proxied)
+      //调试
+      layer.msg('处理中...', { icon: 16,time: 0 });
+      request_plugin('autoshield', 'addDns',{'domain': domain ,'zone': zone,'type': type, 'namex': name, 'content': content, 'ttl': ttl, 'proxied': proxied } , function (rdata) {
+        if(rdata == 200)
+        {
+            layer.msg('加载中...', { icon: 16,time: 0 });
+            request_plugin('autoshield', 'get_domain_dns', { "funcname" : "get_domain_dns","domain": domain, "zone": zone }, function (rdata) {
+               $('.plugin_body').html(rdata);
+               layer.msg('设置成功!', { icon: 1});
+               layer.close(add)
+        });
+        }else{
+            layer.msg(rdata, { icon: 2 }); //获取失败,请重试...
+        }
+        });
+            //预计处理//成功，已存在，未填写，其他
+    }
+    
+    function set_auto(zone) 
+    {
+        layer.msg('处理中...', { icon: 16,time: 0 });
+        var auto = !$("#" + zone).is(':checked');
+        request_plugin('autoshield', 'setAuto',{ 'zone': zone,'auto': auto } , function (rdata) {
+        if(rdata == 200)
+        {
+            request_plugin('autoshield', 'get_domain', { "funcname" : "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+                    layer.msg('设置成功!', { icon: 1});
+                });
+        }else{
+            layer.msg(rdata, { icon: 2 }); //获取失败,请重试...
+        }
+        }
+        );
+    }
+    
+    function start()
+    {
+        layer.msg('启动中...', { icon: 16,time: 0, shade: 0.3 });
+        request_plugin('autoshield', 'start','', function (rdata) {
+            if(rdata == "200")
+            {
+                    request_plugin('autoshield', 'get_index', { "funcname" : "get_index" }, function (rdata) {
+                        $('.plugin_body').html(rdata);
+                    layer.msg('启动成功!', { icon: 1});
+                });
+            }else if(rdata == "1001")
+                {
+                    layer.msg('服务已启动', { icon: 2});
+                }else if(rdata == "1002"){
+                    layer.msg('请先设置防护信息!', { icon: 2});
+                }else if(rdata == "1003"){
+                    layer.msg('请先设置密钥信息!', { icon: 2});
+                }else{
+                    layer.msg(rdata, { icon: 2});
+            }
+        });
+    }
+    
+    function stop()
+    {
+        layer.msg('关闭中...', { icon: 16,time: 0, shade: 0.3 });
+        request_plugin('autoshield', 'stop','', function (rdata) {
+            if(rdata == "200")
+            {
+                    request_plugin('autoshield', 'get_index', { "funcname" : "get_index" }, function (rdata) {
+                        $('.plugin_body').html(rdata);
+                    layer.msg('关闭成功!', { icon: 1});
+                });
+            }else{
+                layer.msg(rdata, { icon: 2});
+            }
+        });
+    }
+    
+    function restart()
+    {
+        layer.msg('重启中...', { icon: 16,time: 0, shade: 0.3 });
+        request_plugin('autoshield', 'restart','', function (rdata) {
+            if(rdata == "200")
+            {
+                    request_plugin('autoshield', 'get_index', { "funcname" : "get_index" }, function (rdata) {
+                        $('.plugin_body').html(rdata);
+                    layer.msg('重启成功!', { icon: 1});
+                });
+            }else if(rdata == "1002"){
+                layer.msg('请先设置防护信息!', { icon: 2});
+            }else if(rdata == "1003"){
+                layer.msg('请先设置密钥信息!', { icon: 2});
+            }else{
+                layer.msg(rdata, { icon: 2});
+        }
+        });
+    }
+    
+    function request_plugin(plugin_name, function_name, args, callback, timeout) {
+        if (!timeout) timeout = 15000;
+        $.ajax({
+            type:'POST',
+            url: '/plugin?action=a&s=' + function_name + '&name=' + plugin_name,
+            data: args,
+            timeout: timeout,
+            success: function(rdata) {
+                if (!callback) {
+                    layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+                    return;
+                }
+                return callback(rdata);
+            },
+            error: function(ex) {
+                if (!callback) {
+                    layer.msg('请求过程发现错误!', { icon: 2 });
+                    return;
+                }
+                return callback(ex);
+            },
+            complete: function(XMLHttpRequest,status){
+                if(status == 'timeout')
+                {
+                    //超时设置
+                    layer.msg('请求超时,请重试...', { icon: 2 });
+                }
+            }
+        });
+    }
+
+    //第一次打开窗口时调用
+    autoshield.get_index();
+
+</script>
