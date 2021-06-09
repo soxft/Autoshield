@@ -13,25 +13,23 @@ Install()
 	#==================================================================
 	#依赖安装开始
 	#yum update -y# 更新太tm慢了
-	yum install procps -y
-	yum install net-tools -y
+	yum install procps net-tools -y
 	#centos
 
 	#apt-get update -y #更新太tm慢了
-	apt-get install procps -y
-	apt-get install net-tools -y
+	apt-get install procps net-tools -y
 	#ubuntu / debian / ETC.
 
 	#创建初始文件
 	mkdir ./config
 	mkdir ./config/domaindns
+	mkdir ./log
 	touch ./config/error.log
 	touch ./config/run.log
 	touch ./config/temp.json
 	touch ./config/domain.json
 	touch ./config/safe.json
 	touch ./config/setting.json
-
 	#依赖安装结束
 	#==================================================================
 
