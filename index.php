@@ -25,6 +25,7 @@ class bt_main {
         $this -> waittime = $data['waittime'];
         $this -> sleeptime = $data['sleeptime'];
         $this -> checktime = $data['checktime'];
+        $this -> safeload = $data['safeload'];
         //防护设置
         $data = json_decode($this->setting,true);
         $this -> cfkey = $data['cfkey'];
@@ -90,12 +91,14 @@ class bt_main {
     }
 
     public function get_safe() {
-        if (empty($this -> checktime) || empty($this -> sleeptime) || empty($this -> waittime)|| empty($this -> safeload)) {
+        if (empty($this -> setting))  return "<h2 style='text-align:center;margin-top:30%;'>请先在密钥设置中设置cloudflare密钥!</h2>";
+        
+        if (empty($this -> checktime) || empty($this -> sleeptime) || empty($this -> waittime) || empty($this -> safeload)) {
             $data = array(
                 "waittime" => "300",
                 "sleeptime" => "5",
                 "checktime" => "30",
-                "safeload" => load::getServerInfo()['advanceLoad']
+                "safeload" => (string)load::getServerInfo()['advanceLoad']
             );
             
             $json = json_encode($data);
@@ -104,27 +107,27 @@ class bt_main {
             $this -> waittime = "300";
             $this -> sleeptime = "5";
             $this -> checktime = "30";
-            $this -> safeload = load::getServerInfo()['advanceLoad']
+            $this -> safeload = (string)load::getServerInfo()['advanceLoad'];
         }
         $html = "
             <div class='line'><span class='tname'>等待时间</span>
                 <div class='info-r'>
-                    <input id='waittime' placeholder='300' type='number' class='bt-input-text mr5' value='$this->waittime' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 在被攻击后,负载恢复正常时关闭5秒盾的等待时间(单位:秒)</span>
+                    <input id='waittime' placeholder='300' type='number' step='1' min='1' max='500' class='bt-input-text mr5' value='$this->waittime' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 在被攻击后,负载恢复正常时关闭5秒盾的等待时间(单位:秒)</span>
                 </div>
             </div>
             <div class='line'><span class='tname'>检测周期</span>
                 <div class='info-r'>
-                    <input id='sleeptime' placeholder='5' type='number' class='bt-input-text mr5' value='$this->sleeptime' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 每多少秒检测一次服务器负载(单位:秒)</span>
+                    <input id='sleeptime' placeholder='5' type='number' step='1' min='1' max='300' class='bt-input-text mr5' value='$this->sleeptime' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 每多少秒检测一次服务器负载(单位:秒)</span>
                 </div>
             </div>
             <div class='line'><span class='tname'>检测时间</span>
                 <div class='info-r'>
-                    <input id='checktime' placeholder='30' type='number' class='bt-input-text mr5' value='$this->checktime' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 连续超过安全负载多长时间自动开盾(单位:秒)</span>
+                    <input id='checktime' placeholder='30' type='number' step='1' min='1' max='1000' class='bt-input-text mr5' value='$this->checktime' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 连续超过安全负载多长时间自动开盾(单位:秒)</span>
                 </div>
             </div>
             <div class='line'><span class='tname'>安全负载</span>
                 <div class='info-r'>
-                    <input id='checktime' placeholder='30' type='number' class='bt-input-text mr5' value='$this->safeload' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 达到设置的安全负载,则判断为被攻击</span>
+                    <input id='safeload' placeholder='$this->safeload' type='number' step='0.1' min='1' max='100' class='bt-input-text mr5' value='$this->safeload' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 达到设置的安全负载,则判断为被攻击</span>
                 </div>
             </div>
             <div class='line'>
@@ -141,9 +144,8 @@ class bt_main {
     }
 
     public function get_domain() {
-        if (empty($this -> setting)) {
-            return "<h2 style='text-align:center;margin-top:30%;'>请先在密钥设置中设置cloudflare密钥!</h2>";
-        }
+        if (empty($this -> setting))  return "<h2 style='text-align:center;margin-top:30%;'>请先在密钥设置中设置cloudflare密钥!</h2>";
+
         @$num = count($this -> domain);
         //or die("<h2 style='text-align:center;margin-top:30%;'>请先在密钥设置中设置cloudflare密钥!</h2>");
         //self::getSecurity();
@@ -216,6 +218,8 @@ class bt_main {
     }
 
     public function get_domain_dns() {
+        if (empty($this -> setting))  return "<h2 style='text-align:center;margin-top:30%;'>请先在密钥设置中设置cloudflare密钥!</h2>";
+        
         $domain = _post("domain");
         //获取查询的域名
         $zone = _post("zone");
@@ -460,14 +464,18 @@ class bt_main {
     }
 
     public function setSafe() {
-        if (floor(_post('checktime')) !== (double)_post('checktime') || floor(_post('waittime')) !== (double)_post('waittime') || floor(_post('sleeptime')) !== (double)_post('sleeptime') || (double)_post('sleeptime') < 1 || (double)_post('waittime') < 1 || (double)_post('checktime') < 1) {
-            //判断是否为整数
-            return "所有数据只能为大于1的整数!";
+        if(!is_numeric(_post('waittime')) || !is_numeric(_post('sleeptime')) || !is_numeric(_post('safeload')) || !is_numeric(_post('checktime'))){
+            return "表单内容只能为数字";
         }
+        if((int)_post('waittime') <= 0 || (int)_post('sleeptime') <= 0 || (int)_post('safeload') <= 0 || (int)_post('checktime') <= 0){
+            return "表单内容必须为正数";
+        }
+
         $data = array(
-            "waittime" => _post('waittime'),
-            "sleeptime" => _post('sleeptime'),
-            "checktime" => _post('checktime')
+            "waittime" => (int)_post('waittime'),
+            "sleeptime" => (int)_post('sleeptime'),
+            "checktime" => (int)_post('checktime'), //强制转换类型
+            "safeload" => _post('safeload')
         );
         
         $json = json_encode($data);
@@ -704,7 +712,7 @@ class file {
             $str = file_get_contents($filepath);
             return $str;
         } else {
-            return "请输入内容";
+            return "";
         }
     }
     public static function write_log($filepath,$content) {
@@ -1018,15 +1026,14 @@ class load{
   public static function getServerInfo() : array
     {
         $cpunum = (int)shell_exec('cat /proc/cpuinfo| grep "physical id"| sort| uniq| wc -l'); //获取cpu个数
-        preg_match('/[0-9]{0,}/',shell_exec('cat /proc/cpuinfo| grep "cpu cores"| uniq'),$cpucore); //获取cpu核心数
+        preg_match('/[0-9]{1,}/',shell_exec('cat /proc/cpuinfo| grep "cpu cores"| uniq'),$cpucore); //获取cpu核心数
         return array(
             'cpunum' => $cpunum,
-            'cpucore' => $cpucore[0],
-            'coreAll' => (int)$cpunum * (int)($cpucore),
-            'advanceLoad' => ((int)$cpucore * $cpunum) * 2 * 0.75
+            'cpucore' => (int)$cpucore[0],
+            'coreAll' => (int)$cpunum * (int)$cpucore[0],
+            'advanceLoad' => ((int)$cpucore[0] * $cpunum) * 2 * 0.75
         );
         //返回服务器安全负载
   }
 }
-
 ?>

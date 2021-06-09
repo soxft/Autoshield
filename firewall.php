@@ -24,7 +24,7 @@ class load
   }
   public static function getSafeload() : float
   {
-    $re = json_decode(file::read('config/safe.json'),true)['safeoad'];
+    $re = json_decode(file::read('config/safe.json'),true)['safeload'];
     return (float)$re;
     //返回服务器安全负载
   }
@@ -232,7 +232,10 @@ function main()
   }
 }
 
+main();
+/*
 while (true){
   echo load::getLoad() . PHP_EOL;
   sleep(1);
 }
+*/

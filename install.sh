@@ -12,12 +12,14 @@ Install()
 	echo '正在安装...'
 	#==================================================================
 	#依赖安装开始
-	#yum update -y
+	#yum update -y# 更新太tm慢了
 	yum install procps -y
+	yum install net-tools -y
 	#centos
 
-	#apt-get update -y
+	#apt-get update -y #更新太tm慢了
 	apt-get install procps -y
+	apt-get install net-tools -y
 	#ubuntu / debian / ETC.
 
 	#创建初始文件
@@ -27,7 +29,7 @@ Install()
 	touch ./config/run.log
 	touch ./config/temp.json
 	touch ./config/domain.json
-	echo '{"waittime":"300","sleeptime":"5","checktime":"30","safeload": ""}' >> ./config/safe.json
+	touch ./config/safe.json
 	touch ./config/setting.json
 
 	#依赖安装结束

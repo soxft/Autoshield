@@ -155,11 +155,12 @@
         var waittime = $("#waittime").val()
         var sleeptime = $("#sleeptime").val()
         var checktime = $("#checktime").val()
-        if(isNull(waittime) || isNull(sleeptime) || isNull(checktime))
+        var safeload = $("#safeload").val()
+        if(isNull(waittime) || isNull(sleeptime) || isNull(checktime) || isNull(safeload))
         {
-            layer.msg('请确认表单是否填写完整', { icon: 2});
+            layer.msg('请确认表单是否填写完整且为数字', { icon: 2});
         }else{
-        request_plugin('autoshield', 'setSafe', { "waittime": waittime, "sleeptime": sleeptime, "checktime": checktime }, function (rdata) {
+        request_plugin('autoshield', 'setSafe', { "waittime": waittime, "sleeptime": sleeptime, "checktime": checktime, "safeload": safeload }, function (rdata) {
             if(rdata == "200")
             {
                 layer.msg('保存成功', { icon: 1});
