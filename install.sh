@@ -13,7 +13,16 @@ Install()
 	#==================================================================
 	#依赖安装开始
 
+	yum install procps net-tools -y
+	#centos
 
+	apt-get install procps net-tools -y
+	#ubuntu / debian / ETC.
+
+	#创建初始文件
+	mkdir ./config
+	mkdir ./config/domaindns
+	mkdir ./log
 	#依赖安装结束
 	#==================================================================
 
