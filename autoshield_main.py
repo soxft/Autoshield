@@ -36,19 +36,40 @@ class autoshield_main:
 
     # 获取cloudflare key & email
     def get_setting(self, args):
-        return {}
+        if not os.path.exists(self.__setting):
+            return {'key': '', 'email': ''}
+        try:
+            data = json.loads(public.ReadFile(self.__setting, mode='r'))
+            return {
+                'key': data['key'] if data['key'] else '',
+                'email': data['email'] if data['email'] else '',
+            }
+        except:
+            public.WriteFile(self.__setting, json.dumps({
+                'email': "",
+                'cfkey': "",
+            }), mode='w+')
+
+        return {'key': '', 'email': ''}
 
     # 设置cloudflare key & email
     def do_setting(self, args):
-        cfemail = args['cfemail']
-        cfkey = args['cfkey']
-        if not cfemail:
+        email = args['email']
+        key = args['key']
+        if not email:
             return {'code': -1, 'msg': '必填项不能为空'}
-        if not cfkey:
+        if not key:
             return {'code': -1, 'msg': '必填项不能为空'}
 
-        res = public.WriteFile(self.__setting, json.dumps({
-            'email': cfemail,
-            'cfkey': cfkey
+        public.WriteFile(self.__setting, json.dumps({
+            'email': email,
+            'key': key
         }), mode='w+')
-        return {'1': res}
+        return {'msg': '成功'}
+
+
+class Cloudflare:
+    def __init__(self):
+        data = json.loads(public.ReadFile(self.__setting, mode='r'))
+        self.key = data['key'] if data['key'] else ''
+        self.email = data['email'] if data['email'] else ''
