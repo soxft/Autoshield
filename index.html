@@ -51,7 +51,7 @@
 
     var autoshield = {
         get_index: function () {
-            var index = layer.load(0, { shade: false });
+            var index = layer.load(0);
             html = "\
                 <div class='soft-man-con bt-form'>\
                     <p class='status'>当前状态：<span class='runStatus'></span></p>\
@@ -72,8 +72,6 @@
 
             $('.plugin_body').html(html);
             request_plugin('get_status', {}, function (data) { //获取状态
-                layer.close(index)
-                //console.log(data.runStatus)
                 if (data.runStatus) {
                     $('.runStatus').html(startingHtml)
                 } else {
@@ -82,7 +80,7 @@
             });
         },
         get_setting: function () {
-            var index = layer.load(0, { shade: false });
+            var index = layer.load(0);
             html = "\
                 <div class='autoshield_setting'>\
                     <div class='line'>\
@@ -111,42 +109,38 @@
                 </div>"
             $('.plugin_body').html(html);
             request_plugin('get_setting', {}, function (rdata) {
-                layer.close(index)
+                $('.autoshield_setting #cfemail').val(rdata.email);
+                $('.autoshield_setting #cfkey').val(rdata.key);
             });
         },
         get_about: function () {
-            var index = layer.load(0, { shade: false });
+            var index = layer.load(0);
             request_plugin('get_about', {}, function (rdata) {
                 $('.plugin_body').html(rdata);
-                layer.close(index)
             });
         },
         get_safe: function () {
-            var index = layer.load(0, { shade: false });
+            var index = layer.load(0);
             request_plugin('get_safe', {}, function (rdata) {
                 $('.plugin_body').html(rdata);
-                layer.close(index)
             });
         },
         get_domain: function () {
-            var index = layer.load(0, { shade: false });
+            var index = layer.load(0);
             request_plugin('get_domain', {}, function (rdata) {
                 $('.plugin_body').html(rdata);
-                layer.close(index)
             });
         },
         get_errorlog: function () {
-            var index = layer.load(0, { shade: false });
+            var index = layer.load(0);
             request_plugin('get_errorlog', {}, function (rdata) {
                 $('.plugin_body').html(rdata);
-                layer.close(index)
             });
         },
         get_runlog: function () {
-            var index = layer.load(0, { shade: false });
+            var index = layer.load(0);
             request_plugin('get_runlog', {}, function (rdata) {
                 $('.plugin_body').html(rdata);
-                layer.close(index)
             });
         },
     }
@@ -176,6 +170,7 @@
                     layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
                     return;
                 }
+                layer.closeAll('loading')
                 if (rdata === null) {
                     layer.open({
                         type: 1,
