@@ -1,0 +1,188 @@
+<style>
+    .autoshield-table table tbody tr td span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 580px;
+        display: block;
+    }
+
+    .plugin_about {
+        padding: 15px 30px;
+        line-height: 26px;
+        background: #f0f0f1;
+        border-radius: 5px;
+        border: 1px solid #ffffff;
+    }
+
+    .butt {
+        display: inline-block;
+        padding-top: 0;
+        height: 1.4em;
+        margin-bottom: 0
+    }
+</style>
+<div class="bt-form">
+    <div class="bt-w-main">
+        <!--菜单部分-->
+        <div class="bt-w-menu">
+            <p class="bgw" onclick="autoshield.get_index()">概览</p>
+            <p onclick="autoshield.get_setting()">密钥设置</p>
+            <p onclick="autoshield.get_safe()">防护设置</p>
+            <p onclick="autoshield.get_domain()">域名管理</p>
+            <p onclick="autoshield.get_runlog()">运行日志</p>
+            <p onclick="autoshield.get_errorlog()">错误日志</p>
+            <p onclick="autoshield.get_about()">关于</p>
+        </div>
+        <!--内容部分-->
+        <div class="bt-w-con pd15">
+            <div class="plugin_body"></div>
+        </div>
+    </div>
+</div>
+<!--JS脚本部分，不要将JS脚本写在其它地方-->
+<script type="text/javascript">
+
+    $('.layui-layer-page').css({ 'width': '700px' });
+
+    $(".bt-w-menu p").click(function () {
+        $(this).addClass('bgw').siblings().removeClass('bgw')
+    });
+
+    var autoshield = {
+        get_index: function () {
+            var index = layer.msg('正在处理,请稍后...', { icon: 16, time: 0 });
+            html = "\
+                <div class='soft-man-con bt-form'>\
+                    <p class='status'>当前状态：<span class='runStatus'></span></p>\
+                </div>\
+                <div class='button'></div>\
+            "
+            startingHtml = "\
+                <span>开启</span><span style='color: #20a53a; margin-left: 3px;' class='glyphicon glyphicon glyphicon-play'></span> </p>\
+                <div class='sfm-opt'>\
+                    <button class='btn btn-default btn-sm' onclick='stop()'>停止</button>\
+                    <button class='btn btn-default btn-sm' onclick='restart()')'>重启</button>\
+                </div>"
+            stopingHtml = "\
+                <span>关闭</span > <span style='color: red; margin-left: 3px;' class='glyphicon glyphicon-pause'></span> </p >\
+                <div class='sfm-opt'>\
+                    <button class='btn btn-default btn-sm' onclick='start()'>启动</button>\
+                </div>"
+
+            $('.plugin_body').html(html);
+            request_plugin('get_status', {}, function (data) { //获取状态
+                layer.close(index)
+                //console.log(data.runStatus)
+                if (data.runStatus) {
+                    $('.runStatus').html(startingHtml)
+                } else {
+                    $('.runStatus').html(stopingHtml)
+                }
+            });
+        },
+        get_setting: function () {
+            var index = layer.msg('正在处理,请稍后...', { icon: 16, time: 0 });
+            html = "\
+                <div class='line'>\
+                <div class='line'><span class='tname'>绑定邮箱</span>\
+                    <div class='info-r'>\
+                        <input id='cfemail' placeholder='请输入您的Cloudflare绑定的邮箱地址' type='text' class='bt-input-text mr5' style='width: 430px;'>\
+                        <br />\
+                        <span style='color: rgb(153, 153, 153);'>请输入您的Cloudflare绑定的邮箱地址</span>\
+                    </div>\
+                </div>\
+                <span class='tname'>全局API密钥</span>\
+                    <div class='info-r'>\
+                        <input id='cfkey' placeholder='请输入Cloudflare global API 密钥' type='text' class='bt-input-text mr5' style='width: 430px;'>\
+                        <br />\
+                        <span style='color: rgb(153, 153, 153);'>请输入Cloudflare global 密钥，获取方式详见关于界面</span>\
+                    </div>\
+                </div>\
+                <div class='line'>\
+                <span class='tname'></span>\
+                    <div class='info-r'>\
+                        <button onclick='save_data_setting()' class='btn btn-success btn-sm'>保存配置</button>\
+                    </div>\
+                </div>\
+            </div>"
+            $('.plugin_body').html(html);
+            request_plugin('get_setting', {}, function (rdata) {
+                layer.close(index)
+            });
+        },
+        get_about: function () {
+            var index = layer.msg('正在处理,请稍后...', { icon: 16, time: 0 });
+            request_plugin('get_about', { "funcname": "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+                layer.close(index)
+            });
+        },
+        get_safe: function () {
+            var index = layer.msg('正在处理,请稍后...', { icon: 16, time: 0 });
+            request_plugin('get_safe', { "funcname": "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+                layer.close(index)
+            });
+        },
+        get_domain: function () {
+            var index = layer.msg('正在处理,请稍后...', { icon: 16, time: 0 });
+            request_plugin('get_domain', { "funcname": "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+                layer.close(index)
+            });
+        },
+        get_errorlog: function () {
+            var index = layer.msg('正在处理,请稍后...', { icon: 16, time: 0 });
+            request_plugin('get_errorlog', { "funcname": "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+                layer.close(index)
+            });
+        },
+        get_runlog: function () {
+            var index = layer.msg('正在处理,请稍后...', { icon: 16, time: 0 });
+            request_plugin('get_runlog', { "funcname": "get_index" }, function (rdata) {
+                $('.plugin_body').html(rdata);
+                layer.close(index)
+            });
+        },
+    }
+
+    function request_plugin(function_name, args, callback, timeout) {
+        if (!timeout) timeout = 15000;
+        $.ajax({
+            type: 'POST',
+            url: '/plugin?action=a&s=' + function_name + '&name=autoshield',
+            data: args,
+            timeout: timeout,
+            success: function (rdata) {
+                if (!callback) {
+                    layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+                    return;
+                }
+                if (rdata.status != undefined && !rdata.status) {
+                    layer.open({
+                        type: 1,
+                        title: '请求时遇到问题',
+                        area: ['50vh', '70vh'],
+                        content: "<div style='padding: 15px;'><div style='padding: 5px;border: 0.2px solid grey;border-radius:5px'>" + rdata.msg + "</div></div><p>&emsp;您可以私聊(QQ:708952107),发送截图获取支持</p>"
+                    });
+                }
+                return callback(rdata);
+            },
+            error: function (ex) {
+                layer.msg('请求过程发现错误!', { icon: 2 });
+                return callback(ex);
+            },
+            complete: function (XMLHttpRequest, status) {
+                if (status == 'timeout') {
+                    layer.msg('请求超时,请重试...', { icon: 2 });
+                }
+            }
+        });
+    }
+
+    //第一次打开窗口时调用
+    autoshield.get_index();
+
+</script>
