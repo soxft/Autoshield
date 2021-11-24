@@ -96,7 +96,7 @@
                             <div class='info-r'>\
                                 <input id='cfkey' placeholder='请输入Cloudflare global API 密钥' type='text' class='bt-input-text mr5' style='width: 430px;'>\
                                 <br />\
-                                <span style='color: rgb(153, 153, 153);'>请输入Cloudflare global 密钥，获取方式详见关于界面</span>\
+                                <span style='color: rgb(153, 153, 153);'>请输入Cloudflare global api key，获取方式详见关于界面</span>\
                             </div>\
                         </div>\
                         <div class='line'>\
@@ -153,20 +153,17 @@
         var load = layer.load();
         request_plugin('do_setting', { email: cfemail, key: cfkey }, (data) => {
             layer.close(load)
-            if (data.code !== 200) {
-                layer.msg(data.msg)
-            } else {
-                // 成功 > 请求所有域名
-                layer.msg('保存成功, 尝试获取用户域名...', { icon: 16, time: 0, shade: 0.3 });
-                request_plugin('get_account_info', { email: cfemail, key: cfkey }, (data) => {
-
-                });
-            }
+            // 成功 > 请求所有域名
+            var getUsername = layer.msg('保存成功, 尝试获取用户域名...', { icon: 16, time: 0, shade: 0.3 });
+            request_plugin('refresh_domain', { email: cfemail, key: cfkey }, (data) => {
+                layer.close(getUsername)
+                layer.msg('获取成功!', { icon: 1, time: 1500, shade: 0.3 });
+            });
         });
     }
 
     function request_plugin(function_name, args, callback, timeout) {
-        if (!timeout) timeout = 15000;
+        if (!timeout) timeout = 25000;
         $.ajax({
             type: 'POST',
             url: '/plugin?action=a&s=' + function_name + '&name=autoshield',
@@ -181,16 +178,16 @@
                 if (rdata === null) {
                     layer.open({
                         type: 1,
-                        title: '请求时遇到问题',
+                        title: '提示',
                         area: ['50vh', '70vh'],
-                        content: "<div style='padding: 15px;'><div style='padding: 5px;border: 0.2px solid grey;border-radius:5px'>func: " + function_name + "<br> args: " + JSON.stringify(args) + "<br/>返回值为null</div></div><p>&emsp;您可以私聊(QQ:708952107),发送截图获取支持</p>"
+                        content: "<div style='padding: 15px;'><div style='padding: 5px;border: 0.2px solid grey;border-radius:5px'>func: " + function_name + "<br> args: " + JSON.stringify(args) + "<br/>返回值为null</div><br/><p>&emsp;您可以在宝塔论坛对应帖子询问以获得支持</p></div>"
                     });
                 } else if (rdata.status != undefined && !rdata.status) {
                     layer.open({
                         type: 1,
-                        title: '请求时遇到问题',
+                        title: '提示',
                         area: ['50vh', '70vh'],
-                        content: "<div style='padding: 15px;'><div style='padding: 5px;border: 0.2px solid grey;border-radius:5px'>" + rdata.msg + "</div></div><p>&emsp;您可以私聊(QQ:708952107),发送截图获取支持</p>"
+                        content: "<div style='padding: 15px;'><div style='padding: 5px;border: 0.2px solid grey;border-radius:5px'>" + rdata.msg + "</div><br/><p>&emsp;您可以在宝塔论坛对应帖子询问以获得支持</p></div>"
                     });
                 } else {
                     return callback(rdata);
