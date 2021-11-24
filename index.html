@@ -145,6 +145,7 @@
         },
     }
 
+    // 保存设置
     function save_setting() {
         var cfemail = $('.autoshield_setting #cfemail').val();
         var cfkey = $('.autoshield_setting #cfkey').val();
@@ -154,8 +155,14 @@
             layer.close(load)
             if (data.code !== 200) {
                 layer.msg(data.msg)
+            } else {
+                // 成功 > 请求所有域名
+                layer.msg('保存成功, 尝试获取用户域名...', { icon: 16, time: 0, shade: 0.3 });
+                request_plugin('get_account_info', { email: cfemail, key: cfkey }, (data) => {
+
+                });
             }
-        }, 1000);
+        });
     }
 
     function request_plugin(function_name, args, callback, timeout) {
