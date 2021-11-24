@@ -19,6 +19,8 @@ Install()
 	apt-get install procps net-tools -y
 	#ubuntu / debian / ETC.
 
+	btpython -m pip install requests
+
 	#创建初始文件
 	mkdir ./config
 	mkdir ./config/domaindns
