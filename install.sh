@@ -20,6 +20,7 @@ Install()
 	#ubuntu / debian / ETC.
 
 	btpython -m pip install requests
+	btpython -m pip install psutil
 
 	#创建初始文件
 	mkdir ./config
