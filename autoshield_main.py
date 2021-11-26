@@ -220,7 +220,7 @@ class Cloudflare:
                 "X-Auth-Email": self.email,
             }
         )
-        return json.loads(response.json)
+        return response.json()
 
     def __get(self, url, param):
         response = requests.get(
@@ -231,4 +231,4 @@ class Cloudflare:
                 "X-Auth-Email": self.email,
             }
         )
-        return json.loads(response.text)
+        return response.json()
