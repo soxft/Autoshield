@@ -83,10 +83,10 @@ def underAttack():
                 print('开启失败 > 具体错误可以在面板/安全选项卡查询')
         else:
             print('用户未开启,跳过')
-        public.WriteLog(
-            PLUGIN_NAME,
-            '服务器遭遇攻击 > 开盾'
-        )
+    public.WriteLog(
+        PLUGIN_NAME,
+        '服务器遭遇攻击 > 开盾'
+    )
 
 
 #  关盾
@@ -114,10 +114,10 @@ def closeShield():
                 print('关闭失败 > 具体错误可以在面板/安全选项卡查询')
         else:
             print('用户未开启,跳过')
-        public.WriteLog(
-            PLUGIN_NAME,
-            '服务器遭遇攻击结束 > 关盾'
-        )
+    public.WriteLog(
+        PLUGIN_NAME,
+        '服务器遭遇攻击结束 > 关盾'
+    )
 
 
 class Cloudflare:
@@ -131,9 +131,7 @@ class Cloudflare:
     def setDomainMode(self, domainId, mode):
         response = self.__patch(
             'zones/{}/settings/security_level'.format(domainId),
-            {
-                'value': mode
-            }
+            {'value': mode}
         )
         return response
 
