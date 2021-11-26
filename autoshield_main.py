@@ -8,8 +8,12 @@
 
 import public
 import os
+import sys
 import json
 import requests
+
+os.chdir("/www/server/panel")
+sys.path.append("class/")
 import psutil
 
 PLUGIN_NAME = 'autoshield'
@@ -73,8 +77,7 @@ class autoshield_main:
             "wait": "300",  # 负载恢复后的等待周期
             "sleep": "5",  # 检测周期
             "check": "30",  # 持续监测时间
-            # "back": 'medium',  # 负载恢复后 状态切换
-            "load": '10'      # 负载阀值
+            "load": self.get_safe_load({})['safe_load'],
         }
         if not os.path.exists(SAFE_FILE_PATH):
             public.WriteFile(SAFE_FILE_PATH, json.dumps(default), mode='w+')
@@ -84,21 +87,13 @@ class autoshield_main:
                 "wait": data['wait'] if data['wait'] else '300',
                 "sleep": data['sleep'] if data['sleep'] else '5',
                 "check": data['check'] if data['check'] else '30',
-                # "back": data['back'] if data['back'] else 'medium',
-                "load": data['load'] if data['load'] else '10',
+                "load": data['load'] if data['load'] else self.get_safe_load({})['safe_load'],
             }
         except:
             public.WriteFile(SAFE_FILE_PATH, json.dumps(default), mode='w+')
         return default
 
-    # 获取安全负载
-    def get_safe_load(self, args):
-        cpuCount = psutil.cpu_count()
-        safe_load = cpuCount * 1.75
-        return {'cpu_count': cpuCount, 'safe_load': safe_load}
-
     # 设置cloudflare key & email
-
     def set_setting(self, args):
         email = args['email']
         key = args['key']
@@ -110,6 +105,24 @@ class autoshield_main:
             'key': key
         }), mode='w+')
         return {'msg': 'success'}
+
+    # 设置 防护属性
+    def set_safe(self, args):
+        check = args['check']
+        wait = args['wait']
+        sleep = args['sleep']
+        load = args['load']
+        if not check or not wait or not sleep or not load:
+            return {'code': -1, 'msg': '必填项不能为空'}
+        if int(check) <= 0 or int(wait) <= 0 or int(sleep) <= 0 or float(load) <= 0:
+            return {'code': -1, 'msg': '数值必须为大于0的整数'}
+        public.WriteFile(SAFE_FILE_PATH, json.dumps({
+            "wait": int(wait),  # 负载恢复后的等待周期
+            "sleep": int(sleep),  # 检测周期
+            "check": int(check),  # 持续监测时间
+            "load": round(float(load), 2),
+        }), mode='w+')
+        return {'code': 200}
 
     # 刷新域名列表
     def refresh_domain(self, args):
@@ -148,6 +161,7 @@ class autoshield_main:
         )
         return {'code': -1, 'msg': "邮箱或API密钥错误<br/>(您可以在面板安全板块查询详细错误信息)"}
 
+    # 刷新所有域名的防护等级
     def refresh_domain_security(self, args):
         domainList = json.loads(public.ReadFile(DOMAIN_FILE_PATH, mode='r'))
         for domainName, v in domainList['domains'].items():
@@ -165,6 +179,12 @@ class autoshield_main:
         return {
             'code': 200,
         }
+
+    # 获取安全负载
+    def get_safe_load(self, args):
+        cpuCount = psutil.cpu_count()
+        safe_load = cpuCount * 1.75
+        return {'cpu_count': cpuCount, 'safe_load': safe_load}
 
 
 class Cloudflare:
