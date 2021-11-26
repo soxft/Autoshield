@@ -94,7 +94,7 @@ def closeShield():
     domainInfo = getUserDomainList()
     count = domainInfo['count']
     domainList = domainInfo['domains']
-    print('检索到{count}个域名, 尝试关盾牌'.format(count))
+    print('检索到{count}个域名, 尝试关盾牌'.format(count=count))
     cf = Cloudflare()
     for domainName, domainInfo in domainList.items():
         domainId = domainInfo['id']
@@ -213,12 +213,11 @@ def main():
             start_check_time = getTimeStamp()
             print('开始维持{check}秒的持续监测'.format(check=check))
             while True:
-                load_now = getLoadNow()
                 time_pass = getTimeStamp() - start_check_time  # 检测过去了多久
                 time_left = check - time_pass  # 检测剩余时间
-                if (load_now > load_safe):
+                if (getLoadNow() > load_safe):
                     print('当前负载: {load_now} > 安全负载: {load_safe} > 持续监测{time_left}秒后开盾'
-                          .format(load_now=load_now, load_safe=load_safe, time_left=time_left)
+                          .format(load_now=getLoadNow(), load_safe=load_safe, time_left=time_left)
                           )
                     if (time_left <= 0):
                         # 开盾 >
@@ -232,7 +231,7 @@ def main():
                             time_underattact_pass = getTimeStamp() - time_underattact_start  # 过去了多久
                             if getLoadNow() > load_safe:
                                 print('当前负载: {load_now} 仍然高于 安全负载: {load_safe} (当前处于开盾模式已经{time_underattact_pass}秒)'
-                                      .format(load_now=load_now, load_safe=load_safe, time_underattact_pass=time_underattact_pass)
+                                      .format(load_now=getLoadNow(), load_safe=load_safe, time_underattact_pass=time_underattact_pass)
                                       )
                             else:
                                 # 负载低于了 安全负载
@@ -240,9 +239,9 @@ def main():
                                 time_underattact_end = getTimeStamp()
                                 while True:
                                     time_underattact_end_pass = getTimeStamp() - time_underattact_end  # 过去了多久
-                                    time_still_wait_end = time_underattact_end_pass - wait
-                                    print('当前负载: {load_now} 已经低于了 安全负载: {load_safe} (当前处于开盾模式已经{time_underattact_pass}秒) 持续等待{time_still_wait_end}秒后关闭盾'
-                                          .format(load_now=load_now, load_safe=load_safe, time_underattact_pass=time_underattact_pass, time_still_wait_end=time_still_wait_end)
+                                    time_still_wait_end = wait - time_underattact_end_pass
+                                    print('当前负载: {load_now} 已经低于了 安全负载: {load_safe} 持续等待{time_still_wait_end}秒后关闭盾'
+                                          .format(load_now=getLoadNow(), load_safe=load_safe, time_still_wait_end=time_still_wait_end)
                                           )
                                     if time_still_wait_end <= 0:
                                         closeShield()  # 关盾
@@ -250,7 +249,7 @@ def main():
                                         break
                                     if getLoadNow() > load_safe:
                                         break
-                                time.sleep(2)
+                                    time.sleep(2)
                             time.sleep(2)  # 每两秒检测一次
                             if stopShield:
                                 break
