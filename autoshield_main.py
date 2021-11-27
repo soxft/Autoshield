@@ -19,6 +19,7 @@ import psutil
 PLUGIN_NAME = 'autoshield'
 FIREWALL_SERVICE_NAME = 'autoshield.py'
 PLUGIN_PATH = "/www/server/panel/plugin/{}/".format(PLUGIN_NAME)
+FIREWALL_SERVICE_PATH = PLUGIN_PATH + FIREWALL_SERVICE_NAME
 
 SETTING_FILE_PATH = PLUGIN_PATH + 'config/setting.json'  # setting文件路径
 SAFE_FILE_PATH = PLUGIN_PATH + 'config/safe.json'  # safe文件路径
@@ -67,9 +68,9 @@ class autoshield_main:
         try:
             res = public.readFile(DOMAIN_FILE_PATH, mode='r')
             response = json.loads(res)
-            return response
+            return {'code': 200, 'data': response['domains']}
         except:
-            return {'status'}
+            return {'code': -1, 'msg': '请先配置密钥信息'}
 
     # 获取防御等级
     def get_safe(self, args):
@@ -92,6 +93,23 @@ class autoshield_main:
         except:
             public.WriteFile(SAFE_FILE_PATH, json.dumps(default), mode='w+')
         return default
+
+    # 启动服务
+    def start(self, args):
+        self.stop({})  # 先关掉其他的
+        public.ExecShell('nohup btpython {} &'.format(
+            FIREWALL_SERVICE_PATH))
+        return {'code': 200}
+
+    # 停止服务
+    def stop(self, args):
+        servicePids = public.ExecShell(
+            "ps -aux | grep 'btpython " +
+            FIREWALL_SERVICE_PATH + "' | awk '{print $2}'"
+        )[0].strip().split('\n')[0:-1]
+        for i in servicePids:
+            public.ExecShell('kill {}'.format(i))
+        return {'code': 200}
 
     # 设置cloudflare key & email
     def set_setting(self, args):

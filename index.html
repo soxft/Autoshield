@@ -174,17 +174,102 @@
             }, false);
         },
         get_domain: () => {
-            var index = layer.load(0);
+            layer.load(0);
+            html = "\
+                <button class='btn btn-success btn-sm' type='button' style='margin-bottom:12px;' onclick='refresh_domain()'>更新域名列表</button>\
+                <div class='autoshield_domain_table' style='max-height:480px;overflow:auto;border:#ddd'>\
+                    <div class='divtable'>\
+                        <table width='100%' border='0' cellpadding='0' cellspacing='0' class='table table-hover'>\
+                        <thead>\
+                            <tr>\
+                                <th>域名</th>\
+                                <th>防御状态</th>\
+                                <th>自动开盾</th>\
+                                <th>解析</th>\
+                            </tr>\
+                        </thead>\
+                        <tbody>\
+                        </tbody>\
+                        </table>\
+                    </div>\
+                </div>\
+            "
+            $('.plugin_body').html(html);
             request_plugin('get_domain', {}, function (rdata) {
-                $('.plugin_body').html(rdata);
+                data = rdata.data
+                console.log(data)
+                Object.keys(data).forEach((domain, index) => {
+                    value = data[domain]
+                    id = value['id']
+                    security = value['security']
+                    status = value['status']
+                    $('.autoshield_domain_table tbody').append("\
+                        <tr id='"+ id + "'>\
+                            <td>"+ domain + "</td>\
+                            <td><a class='btlink' onclick=\"set_security('$domain','$zone','$security')\">"+ value['security'] + "</a></td>\
+                            <td>\
+                                <div class='butt' style='margin-left:0'>\
+                                    <input class='btswitch btswitch-ios' id='"+ id + "' type='checkbox' " + (status == 'true' ? 'checked' : '') + ">\
+                                    <label class='btswitch-btn' for='" + id + "' onclick=\"set_status(this)\"></label>\
+                                </div>\
+                            </td>\
+                            <td><a class='btlink' id='"+ id + "' onclick=\"domain_dns('$domain','$zone')\">管理</a></td>\
+                        </tr>\
+                    ")
+                })
             });
         },
         get_runlog: () => {
-            var index = layer.load(0);
-            request_plugin('get_runlog', {}, function (rdata) {
-                $('.plugin_body').html(rdata);
-            });
+            $('.plugin_body').html("\
+            <div class='line'>\
+                <h4>您可以在面板 > 安全选项卡 > 面板日志中 查询插件运行日志</h4>\
+            </div>\
+            ");
         },
+    }
+
+    function set_status(obj) {
+        id = $(obj).attr('for')
+        console.log(id)
+    }
+
+    function start() {
+        layer.msg('启动服务中...', { icon: 16, time: 0, shade: 0.3 });
+        request_plugin('start', {}, (data) => {
+            layer.msg('启动成功', { icon: 1, time: 1500 })
+            autoshield.get_index()
+        })
+    }
+
+    function stop() {
+        layer.msg('停止服务中...', { icon: 16, time: 0, shade: 0.3 });
+        request_plugin('stop', {}, (data) => {
+            layer.msg('停止成功', { icon: 1, time: 1500 })
+            autoshield.get_index()
+        })
+    }
+
+    function restart() {
+        stop()
+        start()
+    }
+
+    function restart_normal() {
+        layer.msg('重启服务中...', { icon: 16, time: 0, shade: 0.3 });
+        request_plugin('start', {}, (data) => {
+            layer.msg('保存成功', { icon: 1, time: 1500 })
+        })
+    }
+
+    function refresh_domain() {
+        layer.msg('获取用户域名列表', { icon: 16, time: 0, shade: 0.3 });
+        request_plugin('refresh_domain', {}, (data) => {
+            layer.msg('获取域名防御等级(此过程可能耗时较长)', { icon: 16, time: 0, shade: 0.3 });
+            request_plugin('refresh_domain_security', {}, (data) => {
+                layer.msg('保存成功!', { icon: 1, time: 1500 })
+                restart_normal()
+            }, timeout = 0)
+        })
     }
 
     // 保存设置
@@ -200,6 +285,7 @@
                 layer.msg('获取域名防御等级(此过程可能耗时较长)', { icon: 16, time: 0, shade: 0.3 });
                 request_plugin('refresh_domain_security', {}, (data) => {
                     layer.msg('保存成功!', { icon: 1, time: 1500 })
+                    restart_normal()
                 }, timeout = 0)
             }, false);  // 成功 > 尝试请求域名目前防御等级
         });
@@ -215,6 +301,7 @@
         layer.load();
         request_plugin('set_safe', { 'wait': wait, 'sleep': sleep, 'check': check, 'load': load }, (data) => {
             layer.msg('保存成功!', { icon: 1, time: 1500 })
+            restart_normal()
         })
     }
 
