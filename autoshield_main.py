@@ -142,6 +142,14 @@ class autoshield_main:
         }), mode='w+')
         return {'code': 200}
 
+    # 设置域名是否自动开盾
+    def setDomainStatus(self, args):
+        domainName = args['domainName']
+        res = json.loads(public.ReadFile(DOMAIN_FILE_PATH, mode="r+"))
+        res['domains'][domainName]['status'] = not res['domains'][domainName]['status']
+        public.WriteFile(DOMAIN_FILE_PATH, json.dumps(res), mode="w+")
+        return {'code': 200}
+
     # 刷新域名列表
     def refresh_domain(self, args):
         response = Cloudflare().getDomain()

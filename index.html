@@ -204,13 +204,13 @@
                     security = value['security']
                     status = value['status']
                     $('.autoshield_domain_table tbody').append("\
-                        <tr id='"+ id + "'>\
+                        <tr>\
                             <td>"+ domain + "</td>\
                             <td><a class='btlink' onclick=\"set_security('$domain','$zone','$security')\">"+ value['security'] + "</a></td>\
                             <td>\
                                 <div class='butt' style='margin-left:0'>\
                                     <input class='btswitch btswitch-ios' id='"+ id + "' type='checkbox' " + (status == 'true' ? 'checked' : '') + ">\
-                                    <label class='btswitch-btn' for='" + id + "' onclick=\"set_status(this)\"></label>\
+                                    <label class='btswitch-btn' domain_name='"+ domain + "' for='" + id + "' onclick=\"set_status(this)\"></label>\
                                 </div>\
                             </td>\
                             <td><a class='btlink' id='"+ id + "' onclick=\"domain_dns('$domain','$zone')\">管理</a></td>\
@@ -229,8 +229,12 @@
     }
 
     function set_status(obj) {
-        id = $(obj).attr('for')
-        console.log(id)
+        domainName = $(obj).attr('domain_name')
+        layer.msg('请稍等...', { icon: 16, time: 0, shade: 0.3 });
+        request_plugin('setDomainStatus', { 'domainName': domainName }, (data) => {
+            console.log(data)
+            layer.msg('操作成功!', { icon: 1, time: 1500 })
+        })
     }
 
     function start() {
