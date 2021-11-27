@@ -75,9 +75,9 @@ class autoshield_main:
     # 获取防御等级
     def get_safe(self, args):
         default = {
-            "wait": "300",  # 负载恢复后的等待周期
-            "sleep": "5",  # 检测周期
-            "check": "30",  # 持续监测时间
+            "wait": 300,  # 负载恢复后的等待周期
+            "sleep": 5,  # 检测周期
+            "check": 30,  # 持续监测时间
             "load": self.get_safe_load({})['safe_load'],
         }
         if not os.path.exists(SAFE_FILE_PATH):
@@ -85,9 +85,9 @@ class autoshield_main:
         try:
             data = json.loads(public.ReadFile(SAFE_FILE_PATH, mode='r'))
             return {
-                "wait": data['wait'] if data['wait'] else '300',
-                "sleep": data['sleep'] if data['sleep'] else '5',
-                "check": data['check'] if data['check'] else '30',
+                "wait": data['wait'] if data['wait'] else 300,
+                "sleep": data['sleep'] if data['sleep'] else 5,
+                "check": data['check'] if data['check'] else 30,
                 "load": data['load'] if data['load'] else self.get_safe_load({})['safe_load'],
             }
         except:
