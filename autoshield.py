@@ -89,12 +89,25 @@ def underAttack():
     )
 
 
+def changeDomainMode(domain, mode):
+    re = getUserDomainList()
+    try:
+        re['domains'][domain]['security'] = mode
+        public.WriteFile(
+            SAFE_FILE_PATH,
+            json.dumps(re),
+            mode='w+'
+        )
+    except:
+        pass
+
+
 #  关盾
 def closeShield():
     domainInfo = getUserDomainList()
     count = domainInfo['count']
     domainList = domainInfo['domains']
-    print('检索到{count}个域名, 尝试关盾牌'.format(count=count))
+    print('检索到{count}个域名, 尝试关盾'.format(count=count))
     cf = Cloudflare()
     for domainName, domainInfo in domainList.items():
         domainId = domainInfo['id']

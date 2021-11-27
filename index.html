@@ -268,7 +268,7 @@
             request_plugin('refresh_domain_security', {}, (data) => {
                 layer.msg('保存成功!', { icon: 1, time: 1500 })
                 restart_normal()
-            }, timeout = 0)
+            }, false, 0)
         })
     }
 
