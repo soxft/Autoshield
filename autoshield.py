@@ -58,7 +58,7 @@ def getTimeStamp():
     return int(time.time())
 
 
-# 开盾 老子的意大利炮呢
+# 开盾
 def underAttack():
     domainInfo = getUserDomainList()
     count = domainInfo['count']
@@ -189,7 +189,7 @@ class Cloudflare:
 def main():
     print('---- {} ----'.format(PLUGIN_NAME))
     print('尝试获取服务器基本信息 > ')
-    
+
     res = getSafeInfo()
     wait = res['wait']  # 负载恢复后的等待周期
     sleep = res['sleep']  # 检测周期
