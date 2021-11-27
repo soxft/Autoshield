@@ -74,6 +74,7 @@ def underAttack():
             response = cf.setDomainMode(domainId=domainId, mode='under_attack')
             if response['success']:
                 print('开启成功')
+                changeDomainSecurity(domainName, 'under_attack')
             else:
                 public.WriteLog(
                     PLUGIN_NAME,
@@ -87,19 +88,6 @@ def underAttack():
         PLUGIN_NAME,
         '服务器遭遇攻击 > 开盾'
     )
-
-
-def changeDomainMode(domain, mode):
-    re = getUserDomainList()
-    try:
-        re['domains'][domain]['security'] = mode
-        public.WriteFile(
-            SAFE_FILE_PATH,
-            json.dumps(re),
-            mode='w+'
-        )
-    except:
-        pass
 
 
 #  关盾
@@ -118,6 +106,7 @@ def closeShield():
             response = cf.setDomainMode(domainId=domainId, mode='medium')
             if response['success']:
                 print('关闭成功')
+                changeDomainSecurity(domainName, 'medium')
             else:
                 public.WriteLog(
                     PLUGIN_NAME,
@@ -131,6 +120,19 @@ def closeShield():
         PLUGIN_NAME,
         '服务器遭遇攻击结束 > 关盾'
     )
+
+
+def changeDomainSecurity(domain, mode):
+    re = getUserDomainList()
+    try:
+        re['domains'][domain]['security'] = mode
+        public.WriteFile(
+            DOMAIN_FILE_PATH,
+            json.dumps(re),
+            mode='w+'
+        )
+    except:
+        pass
 
 
 class Cloudflare:
@@ -187,7 +189,7 @@ class Cloudflare:
 def main():
     print('---- {} ----'.format(PLUGIN_NAME))
     print('尝试获取服务器基本信息 > ')
-
+    
     res = getSafeInfo()
     wait = res['wait']  # 负载恢复后的等待周期
     sleep = res['sleep']  # 检测周期
