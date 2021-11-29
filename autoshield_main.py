@@ -101,6 +101,12 @@ class autoshield_main:
             public.WriteFile(SAFE_FILE_PATH, json.dumps(default), mode='w+')
         return default
 
+    # 获取域名解析记录 下个版本完成
+    def get_domain_dns(self, args):
+        domainId = args['domainId']
+        res = Cloudflare().getDomainDns(domainId)
+        return res
+
     # 启动服务
     def start(self, args):
         self.stop({})  # 先关掉其他的
@@ -212,7 +218,6 @@ class autoshield_main:
                 'index': index
             }
             public.WriteFile(DOMAIN_FILE_PATH, json.dumps(res), mode='w+')
-            public.WriteLog(PLUGIN_NAME, '刷新域名列表成功')
             return {'code': 200, 'msg': 'success', 'count': count}
         # 获取失败
         public.WriteLog(
@@ -276,6 +281,10 @@ class Cloudflare:
         data = json.loads(public.ReadFile(SETTING_FILE_PATH, mode='r'))
         self.key = data['key'] if data['key'] else ''
         self.email = data['email'] if data['email'] else ''
+
+    def getDomainDns(self, domainId):
+        response = self.__get('zones/{}/dns_records'.format(domainId), {})
+        return response
 
     # 获取用户域名
     def getDomain(self):

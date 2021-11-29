@@ -185,7 +185,7 @@
                                 <th>域名</th>\
                                 <th>防御状态</th>\
                                 <th>自动开盾</th>\
-                                <th>解析</th>\
+                          <!--     <th>解析</th> -->\
                             </tr>\
                         </thead>\
                         <tbody>\
@@ -213,7 +213,7 @@
                                     <label class='btswitch-btn' domain_name='"+ domain + "' for='" + id + "' onclick=\"set_status(this)\"></label>\
                                 </div>\
                             </td>\
-                            <td><a class='btlink' onclick=\"domain_dns('$domain','$zone')\">管理</a></td>\
+                      <!--      <td><a class='btlink' onclick=\"domain_dns('"+ domain + "','" + id + "')\">管理</a></td> -->\
                         </tr>\
                     ")
                 })
@@ -228,9 +228,40 @@
         },
     }
 
+    // 获取域名 dns记录
+    function domain_dns(domain, id) {
+        html = "\
+            <button class='btn btn-success btn-sm' type='button' style='margin-bottom:12px;' onclick='autoshield.get_domain()'>＜返回</button>\
+            <button class='btn btn-success btn-sm' type='button' style='margin-bottom:12px;' onclick='update_domain_dns(\"$domain\",\"$zone\")'>更新解析列表</button>\
+            <button class='btn btn-success btn-sm' type='button' style='margin-bottom:12px;' onclick='add_domain_dns(\"$domain\",\"$zone\")'>添加记录</button>\
+            <div style='max-height:480px;overflow:auto;border:#ddd'>\
+                <div class='divtable'>\
+                    <table width='100%' border='0' cellpadding='0' cellspacing='0' class='table table-hover'>\
+                    <thead>\
+                        <tr>\
+                            <th>类型</th>\
+                            <th>名称</th>\
+                            <th>内容</th>\
+                            <th>TTL</th>\
+                            <th>CDN</th>\
+                            <th>管理</th>\
+                        </tr>\
+                    </thead>\
+                    <tbody>\
+                        \
+                    </tbody>\
+                    </table>\
+                </div>\
+            </div>\
+            "
+        $('.plugin_body').html(html)
+        request_plugin('get_domain_dns', { 'domainId': id }, (data) => {
+            console.log(data)
+        })
+    }
+
     function set_security(domain, id, obj) {
         security = $(obj).text()
-        console.log(security)
         securitylist = layer.open({
             type: 1,
             title: "设置防御等级【" + domain + "】",
