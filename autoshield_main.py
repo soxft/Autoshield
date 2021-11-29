@@ -6,15 +6,15 @@
 # @Author xcsoft<contact@xcsoft.top>
 # @Date 2021 11 23
 
-import public
 import os
 import sys
 import json
 import requests
+import psutil
 
 os.chdir("/www/server/panel")
 sys.path.append("class/")
-import psutil
+import public
 
 PLUGIN_NAME = 'autoshield'
 FIREWALL_SERVICE_NAME = 'autoshield.py'
@@ -68,7 +68,14 @@ class autoshield_main:
         try:
             res = public.readFile(DOMAIN_FILE_PATH, mode='r')
             response = json.loads(res)
-            return {'code': 200, 'data': response['domains']}
+            data = {}
+            for k, v in response['domains'].items():
+                data[k] = {
+                    "id": v['id'],
+                    "security": self.__transform_moed(v['security']),
+                    "status": v['status']
+                }
+            return {'code': 200, 'data': data}
         except:
             return {'code': -1, 'msg': '请先配置密钥信息'}
 
@@ -142,6 +149,33 @@ class autoshield_main:
         }), mode='w+')
         return {'code': 200}
 
+    # 设置域名security mode
+    def set_domain_security(self, args):
+        id = args['id']
+        mode = args['mode']
+        domainName = self.__getDomainNameById(id)
+        response = Cloudflare().setDomainMode(domainId=id, mode=mode)
+        if response['success']:
+            data = json.loads(public.ReadFile(DOMAIN_FILE_PATH, mode='r'))
+            data['domains'][domainName]['security'] = mode
+            public.WriteFile(
+                DOMAIN_FILE_PATH,
+                json.dumps(data),
+                mode='w+'
+            )
+            public.WriteLog(
+                PLUGIN_NAME,
+                '设置域名[{}]的防御等级为[{}]'.format(
+                    domainName, self.__transform_moed(mode))
+            )
+            return {'code': 200, 'msg': 'success', 'data': {'mode_name': self.__transform_moed(mode)}}
+        else:
+            public.WriteLog(
+                PLUGIN_NAME,
+                '设置域名[{}]的防御等级为[{}]时出错: {}'.format(
+                    domainName, mode, response['errors'])
+            )
+
     # 设置域名是否自动开盾
     def setDomainStatus(self, args):
         domainName = args['domainName']
@@ -212,6 +246,28 @@ class autoshield_main:
         safe_load = cpuCount * 1.75
         return {'cpu_count': cpuCount, 'safe_load': safe_load}
 
+    # 转换mode 名称
+    def __transform_moed(self, mode):
+        if mode == 'low':
+            return '低'
+        elif mode == 'medium':
+            return '中'
+        elif mode == 'high':
+            return '高'
+        elif mode == 'under_attack':
+            return '开盾'
+        elif mode == 'essentially_off':
+            return '本质上为关'
+        else:
+            return '未知'
+
+    # 通过域名ID获取域名名称
+    def __getDomainNameById(self, id):
+        res = json.loads(public.ReadFile(DOMAIN_FILE_PATH, mode="r+"))
+        for k, v in res['domains'].items():
+            if v['id'] == id:
+                return k
+
 
 class Cloudflare:
     __base_url = "https://api.cloudflare.com/client/v4/"
@@ -235,6 +291,25 @@ class Cloudflare:
             {}
         )
         return response
+
+    def setDomainMode(self, domainId, mode):
+        response = self.__patch(
+            'zones/{}/settings/security_level'.format(domainId),
+            {'value': mode}
+        )
+        return response
+
+    def __patch(self, url, data):
+        response = requests.patch(
+            self.__base_url + url,
+            data=json.dumps(data),
+            headers={
+                "Content-Type": "application/json",
+                "X-Auth-Key": self.key,
+                "X-Auth-Email": self.email,
+            }
+        )
+        return response.json()
 
     def __post(self, url, data):
         response = requests.post(

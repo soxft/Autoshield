@@ -197,23 +197,23 @@
             $('.plugin_body').html(html);
             request_plugin('get_domain', {}, function (rdata) {
                 data = rdata.data
-                console.log(data)
+                //console.log(data)
                 Object.keys(data).forEach((domain, index) => {
                     value = data[domain]
                     id = value['id']
                     security = value['security']
                     status = value['status']
                     $('.autoshield_domain_table tbody').append("\
-                        <tr>\
+                        <tr class='"+ id + "_tr'>\
                             <td>"+ domain + "</td>\
-                            <td><a class='btlink' onclick=\"set_security('$domain','$zone','$security')\">"+ value['security'] + "</a></td>\
+                            <td><a class='btlink domain_security' onclick=\"set_security('"+ domain + "','" + id + "',this)\">" + value['security'] + "</a></td>\
                             <td>\
                                 <div class='butt' style='margin-left:0'>\
                                     <input class='btswitch btswitch-ios' id='"+ id + "' type='checkbox' " + (status == 'true' ? 'checked' : '') + ">\
                                     <label class='btswitch-btn' domain_name='"+ domain + "' for='" + id + "' onclick=\"set_status(this)\"></label>\
                                 </div>\
                             </td>\
-                            <td><a class='btlink' id='"+ id + "' onclick=\"domain_dns('$domain','$zone')\">管理</a></td>\
+                            <td><a class='btlink' onclick=\"domain_dns('$domain','$zone')\">管理</a></td>\
                         </tr>\
                     ")
                 })
@@ -228,11 +228,50 @@
         },
     }
 
+    function set_security(domain, id, obj) {
+        security = $(obj).text()
+        console.log(security)
+        securitylist = layer.open({
+            type: 1,
+            title: "设置防御等级【" + domain + "】",
+            area: '300px',
+            closeBtn: 2,
+            shadeClose: false,
+            content: '<form class="bt-form pd20 pb70 autoshield_set_security_table">\
+                        <div class="line">\
+                            <span class="tname">防御等级</span>\
+                            <div class="info-r">\
+                                <select id="security" class="bt-input-text mr5" style="width:150px;">\
+                                    <option value="essentially_off" '+ (security == '本质上为关' ? 'selected' : '') + '>本质上为关</option>\
+                                    <option value="low" '+ (security == '低' ? 'selected' : '') + '>低</option>\
+                                    <option value="medium" '+ (security == '中' ? 'selected' : '') + '>中</option>\
+                                    <option value="high" '+ (security == '高' ? 'selected' : '') + '>高</option>\
+                                    <option value="under_attack" '+ (security == '开盾' ? 'selected' : '') + '>开盾</option>\
+                                </select>\
+                            </div>\
+                        </div>\
+                        <div class="bt-form-submit-btn">\
+                            <button type="button" class="btn btn-success btn-sm btn-title" onclick="set_security_submit(\''+ id + '\')">确定</button>\
+                        </div>\
+                    </form>'
+        });
+    }
+
+    function set_security_submit(id) {
+        mode = $('.autoshield_set_security_table #security').val()
+        layer.load()
+        request_plugin('set_domain_security', { 'id': id, 'mode': mode }, (data) => {
+            if (data['code'] == 200) {
+                $('.' + id + '_tr .domain_security').text(data['data']['mode_name'])
+                layer.msg('设置成功', { icon: 1, time: 1500 })
+            }
+        })
+    }
+
     function set_status(obj) {
         domainName = $(obj).attr('domain_name')
         layer.msg('请稍等...', { icon: 16, time: 0, shade: 0.3 });
         request_plugin('setDomainStatus', { 'domainName': domainName }, (data) => {
-            console.log(data)
             layer.msg('操作成功!', { icon: 1, time: 1500 })
         })
     }
