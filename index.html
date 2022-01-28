@@ -1,0 +1,440 @@
+<style>
+    .autoshield-table table tbody tr td span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        width: 580px;
+        display: block;
+    }
+
+    .autoshield_about {
+        padding: 15px 30px;
+        line-height: 26px;
+        background: #f0f0f1;
+        border-radius: 5px;
+        border: 1px solid #ffffff;
+    }
+
+    .butt {
+        display: inline-block;
+        padding-top: 0;
+        height: 1.4em;
+        margin-bottom: 0
+    }
+</style>
+<div class="bt-form">
+    <div class="bt-w-main">
+        <!--菜单部分-->
+        <div class="bt-w-menu">
+            <p class="bgw" onclick="autoshield.get_index()">概览</p>
+            <p onclick="autoshield.get_setting()">密钥设置</p>
+            <p onclick="autoshield.get_safe()">防护设置</p>
+            <p onclick="autoshield.get_domain()">域名管理</p>
+            <p onclick="autoshield.get_runlog()">运行日志</p>
+            <p onclick="autoshield.get_about()">关于</p>
+        </div>
+        <!--内容部分-->
+        <div class="bt-w-con pd15">
+            <div class="plugin_body"></div>
+        </div>
+    </div>
+</div>
+<!--JS脚本部分，不要将JS脚本写在其它地方-->
+<script type="text/javascript">
+
+    $('.layui-layer-page').css({ 'width': '700px' });
+
+    $(".bt-w-menu p").click(function () {
+        $(this).addClass('bgw').siblings().removeClass('bgw')
+    });
+
+    var autoshield = {
+        get_index: () => {
+            html = "\
+                <div class='soft-man-con bt-form'>\
+                    <p class='status'>当前状态: <span class='runStatus'></span></p>\
+                </div>\
+                <div class='button'></div>\
+            "
+            startingHtml = "\
+                <span>开启</span><span style='color: #20a53a; margin-left: 3px;' class='glyphicon glyphicon glyphicon-play'></span> </p>\
+                <div class='sfm-opt'>\
+                    <button class='btn btn-default btn-sm' onclick='stop()'>停止</button>\
+                    <button class='btn btn-default btn-sm' onclick='restart()')'>重启</button>\
+                </div>"
+            stopingHtml = "\
+                <span>关闭</span > <span style='color: red; margin-left: 3px;' class='glyphicon glyphicon-pause'></span> </p >\
+                <div class='sfm-opt'>\
+                    <button class='btn btn-default btn-sm' onclick='start()'>启动</button>\
+                </div>"
+
+            $('.plugin_body').html(html);
+            var index = layer.load(0);
+            request_plugin('get_status', {}, function (data) { //获取状态
+                if (data.runStatus) {
+                    $('.runStatus').html(startingHtml)
+                } else {
+                    $('.runStatus').html(stopingHtml)
+                }
+            });
+        },
+        get_setting: () => {
+            html = "\
+                <div class='autoshield_setting'>\
+                    <div class='line'>\
+                        <div class='line'>\
+                        <span class='tname'>绑定邮箱</span>\
+                            <div class='info-r'>\
+                                <input id='cfemail' placeholder='请输入您的Cloudflare绑定的邮箱地址' type='text' class='bt-input-text mr5' style='width: 430px;'>\
+                                <br />\
+                                <span style='color: rgb(153, 153, 153);'>请输入您的Cloudflare绑定的邮箱地址</span>\
+                            </div>\
+                        </div>\
+                        <span class='tname'>全局API密钥</span>\
+                            <div class='info-r'>\
+                                <input id='cfkey' placeholder='请输入Cloudflare global API 密钥' type='text' class='bt-input-text mr5' style='width: 430px;'>\
+                                <br />\
+                                <span style='color: rgb(153, 153, 153);'>请输入Cloudflare global api key，获取方式详见关于界面</span>\
+                            </div>\
+                        </div>\
+                        <div class='line'>\
+                        <span class='tname'></span>\
+                            <div class='info-r'>\
+                                <button onclick='save_setting()' class='btn btn-success btn-sm'>保存配置</button>\
+                            </div>\
+                        </div>\
+                    </div>\
+                </div>"
+            $('.plugin_body').html(html);
+            var index = layer.load(0);
+            request_plugin('get_setting', {}, function (rdata) {
+                $('.autoshield_setting #cfemail').val(rdata.email);
+                $('.autoshield_setting #cfkey').val(rdata.key);
+            });
+        },
+        get_about: () => {
+            html = "\
+                <div class='autoshield_about'>\
+                    <img src='https://cdn.jsdelivr.net/gh/soxft/cdn@main/team/team.png' width='500px' alt='XUSOFT'>\
+                    <p><b>插件名称: </b>cloudflare自动开盾</p>\
+                    <p><b>版本: v2.0.1</p>\
+                    <p><b>使用说明: </b>当服务器负载超过安全负载时,自动启动Cloudflare 5秒盾,来防止服务器宕机, 所有功能均基于Cloudflare API v4实现。</p>\
+                    <p><b>Telegram: </b><a class='btlink' href='https://t.me/xcsoft'>@xcsoft</a></p>\
+                    <p><b>QQ群: </b><a class='btlink' href='https://jq.qq.com/?_wv=1027&k=52w0Rgc'>608265912</a></p>\
+                    <p><b>Email: </b><a class='btlink' href='mailto:contact@xcsoft.top'>contact@xcsoft.top</a></p>\
+                </div>\
+            "
+            $('.plugin_body').html(html);
+        },
+        get_safe: () => {
+            html = "\
+            <div class='autoshield_safe'>\
+                <div class='line'>\
+                    <span class='tname'>等待时间</span>\
+                    <div class='info-r'>\
+                        <input id='wait' min='0' max='1000' placeholder='300' type='number' class='bt-input-text mr5' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 被攻击后,负载恢复正常后关闭5秒盾的等待时间(单位:秒)</span>\
+                    </div>\
+                </div>\
+                <div class='line'><span class='tname'>检测周期</span>\
+                    <div class='info-r'>\
+                        <input id='sleep' min='5' max='600' placeholder='5' type='number' class='bt-input-text mr5' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 每几秒检测一次服务器负载(单位:秒)</span>\
+                    </div>\
+                </div>\
+                <div class='line'><span class='tname'>检测时间</span>\
+                    <div class='info-r'>\
+                        <input id='check' min='5' max='100' placeholder='30' type='number' class='bt-input-text mr5' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 连续超过负载阀值多长时间自动开盾(单位:秒)</span>\
+                    </div>\
+                </div>\
+                <div class='line'><span class='tname'>负载阀值</span>\
+                    <div class='info-r'>\
+                        <input id='load' step='0.01' placeholder='10' type='number' class='bt-input-text mr5' style='width: 100px;'> <span style='color: rgb(153, 153, 153);'>* 服务器负载阀值,超过该值后等待检测时间后自动开盾</span>\
+                    </div>\
+                </div>\
+                <div class='line'>\
+                    <span class='tname'></span>\
+                    <div class='info-r'>\
+                        <button onclick='save_safe()' class='btn btn-success btn-sm'>保存配置</button>\
+                    </div>\
+                </div>\
+                <div style='height:10px'></div>\
+                <span style='color: rgb(153, 153, 153);'>* 当前服务器的逻辑CPU个数为: <span id='cpuCount'>-</span>个, 安全负载为<span id='safeLoad'>-</span></span>\
+            </div>"
+            $('.plugin_body').html(html);
+            var index = layer.load(0);
+            request_plugin('get_safe', {}, function (rdata) {
+                $('.autoshield_safe #wait').val(rdata.wait)
+                $('.autoshield_safe #sleep').val(rdata.sleep)
+                $('.autoshield_safe #check').val(rdata.check)
+                $('.autoshield_safe #load').val(rdata.load)
+                $('.autoshield_safe #load').attr('placeholder', rdata.load)
+            });
+            request_plugin('get_safe_load', {}, function (rdata) {
+                $('.autoshield_safe #cpuCount').text(rdata.cpu_count)
+                $('.autoshield_safe #safeLoad').text(rdata.safe_load)
+            }, false);
+        },
+        get_domain: () => {
+            layer.load(0);
+            html = "\
+                <button class='btn btn-success btn-sm' type='button' style='margin-bottom:12px;' onclick='refresh_domain()'>更新域名列表</button>\
+                <div class='autoshield_domain_table' style='max-height:480px;overflow:auto;border:#ddd'>\
+                    <div class='divtable'>\
+                        <table width='100%' border='0' cellpadding='0' cellspacing='0' class='table table-hover'>\
+                        <thead>\
+                            <tr>\
+                                <th>域名</th>\
+                                <th>防御状态</th>\
+                                <th>自动开盾</th>\
+                          <!--     <th>解析</th> -->\
+                            </tr>\
+                        </thead>\
+                        <tbody>\
+                        </tbody>\
+                        </table>\
+                    </div>\
+                </div>\
+            "
+            $('.plugin_body').html(html);
+            request_plugin('get_domain', {}, function (rdata) {
+                data = rdata.data
+                //console.log(data)
+                Object.keys(data).forEach((domain, index) => {
+                    value = data[domain]
+                    id = value['id']
+                    security = value['security']
+                    status = value['status']
+                    $('.autoshield_domain_table tbody').append("\
+                        <tr class='"+ id + "_tr'>\
+                            <td>"+ domain + "</td>\
+                            <td><a class='btlink domain_security' onclick=\"set_security('"+ domain + "','" + id + "',this)\">" + value['security'] + "</a></td>\
+                            <td>\
+                                <div class='butt' style='margin-left:0'>\
+                                    <input class='btswitch btswitch-ios' id='"+ id + "' type='checkbox' " + (status == 'true' ? 'checked' : '') + ">\
+                                    <label class='btswitch-btn' domain_name='"+ domain + "' for='" + id + "' onclick=\"set_status(this)\"></label>\
+                                </div>\
+                            </td>\
+                      <!--      <td><a class='btlink' onclick=\"domain_dns('"+ domain + "','" + id + "')\">管理</a></td> -->\
+                        </tr>\
+                    ")
+                })
+            });
+        },
+        get_runlog: () => {
+            $('.plugin_body').html("\
+            <div class='line'>\
+                <h4>您可以在面板 > 安全选项卡 > 面板日志中 查询插件运行日志</h4>\
+            </div>\
+            ");
+        },
+    }
+
+    // 获取域名 dns记录
+    function domain_dns(domain, id) {
+        html = "\
+            <button class='btn btn-success btn-sm' type='button' style='margin-bottom:12px;' onclick='autoshield.get_domain()'>＜返回</button>\
+            <button class='btn btn-success btn-sm' type='button' style='margin-bottom:12px;' onclick='update_domain_dns(\"$domain\",\"$zone\")'>更新解析列表</button>\
+            <button class='btn btn-success btn-sm' type='button' style='margin-bottom:12px;' onclick='add_domain_dns(\"$domain\",\"$zone\")'>添加记录</button>\
+            <div style='max-height:480px;overflow:auto;border:#ddd'>\
+                <div class='divtable'>\
+                    <table width='100%' border='0' cellpadding='0' cellspacing='0' class='table table-hover'>\
+                    <thead>\
+                        <tr>\
+                            <th>类型</th>\
+                            <th>名称</th>\
+                            <th>内容</th>\
+                            <th>TTL</th>\
+                            <th>CDN</th>\
+                            <th>管理</th>\
+                        </tr>\
+                    </thead>\
+                    <tbody>\
+                        \
+                    </tbody>\
+                    </table>\
+                </div>\
+            </div>\
+            "
+        $('.plugin_body').html(html)
+        request_plugin('get_domain_dns', { 'domainId': id }, (data) => {
+            console.log(data)
+        })
+    }
+
+    function set_security(domain, id, obj) {
+        security = $(obj).text()
+        securitylist = layer.open({
+            type: 1,
+            title: "设置防御等级【" + domain + "】",
+            area: '300px',
+            closeBtn: 2,
+            shadeClose: false,
+            content: '<form class="bt-form pd20 pb70 autoshield_set_security_table">\
+                        <div class="line">\
+                            <span class="tname">防御等级</span>\
+                            <div class="info-r">\
+                                <select id="security" class="bt-input-text mr5" style="width:150px;">\
+                                    <option value="essentially_off" '+ (security == '本质上为关' ? 'selected' : '') + '>本质上为关</option>\
+                                    <option value="low" '+ (security == '低' ? 'selected' : '') + '>低</option>\
+                                    <option value="medium" '+ (security == '中' ? 'selected' : '') + '>中</option>\
+                                    <option value="high" '+ (security == '高' ? 'selected' : '') + '>高</option>\
+                                    <option value="under_attack" '+ (security == '开盾' ? 'selected' : '') + '>开盾</option>\
+                                </select>\
+                            </div>\
+                        </div>\
+                        <div class="bt-form-submit-btn">\
+                            <button type="button" class="btn btn-success btn-sm btn-title" onclick="set_security_submit(\''+ id + '\')">确定</button>\
+                        </div>\
+                    </form>'
+        });
+    }
+
+    function set_security_submit(id) {
+        mode = $('.autoshield_set_security_table #security').val()
+        layer.load()
+        request_plugin('set_domain_security', { 'id': id, 'mode': mode }, (data) => {
+            if (data['code'] == 200) {
+                $('.' + id + '_tr .domain_security').text(data['data']['mode_name'])
+                layer.msg('设置成功', { icon: 1, time: 1500 })
+            }
+        })
+    }
+
+    function set_status(obj) {
+        domainName = $(obj).attr('domain_name')
+        layer.msg('请稍等...', { icon: 16, time: 0, shade: 0.3 });
+        request_plugin('setDomainStatus', { 'domainName': domainName }, (data) => {
+            layer.msg('操作成功!', { icon: 1, time: 1500 })
+        })
+    }
+
+    function start() {
+        layer.msg('启动服务中...', { icon: 16, time: 0, shade: 0.3 });
+        request_plugin('start', {}, (data) => {
+            layer.msg('启动成功', { icon: 1, time: 1500 })
+            autoshield.get_index()
+        })
+    }
+
+    function stop() {
+        layer.msg('停止服务中...', { icon: 16, time: 0, shade: 0.3 });
+        request_plugin('stop', {}, (data) => {
+            layer.msg('停止成功', { icon: 1, time: 1500 })
+            autoshield.get_index()
+        })
+    }
+
+    function restart() {
+        stop()
+        start()
+    }
+
+    function restart_normal() {
+        layer.msg('重启服务中...', { icon: 16, time: 0, shade: 0.3 });
+        request_plugin('start', {}, (data) => {
+            layer.msg('保存成功', { icon: 1, time: 1500 })
+        })
+    }
+
+    function refresh_domain() {
+        layer.msg('获取用户域名列表', { icon: 16, time: 0, shade: 0.3 });
+        request_plugin('refresh_domain', {}, (data) => {
+            layer.msg('获取域名防御等级(此过程可能耗时较长)', { icon: 16, time: 0, shade: 0.3 });
+            request_plugin('refresh_domain_security', {}, (data) => {
+                layer.msg('保存成功!', { icon: 1, time: 1500 })
+                restart_normal()
+            }, false, 0)
+        })
+    }
+
+    // 保存设置
+    function save_setting() {
+        var cfemail = $('.autoshield_setting #cfemail').val();
+        var cfkey = $('.autoshield_setting #cfkey').val();
+
+        layer.msg('保存中', { icon: 16, time: 0, shade: 0.3 });
+        request_plugin('set_setting', { 'email': cfemail, 'key': cfkey }, (data) => {
+            // 成功 > 请求所有域名
+            layer.msg('获取用户域名列表', { icon: 16, time: 0, shade: 0.3 });
+            request_plugin('refresh_domain', {}, (data) => {
+                layer.msg('获取域名防御等级(此过程可能耗时较长)', { icon: 16, time: 0, shade: 0.3 });
+                request_plugin('refresh_domain_security', {}, (data) => {
+                    layer.msg('保存成功!', { icon: 1, time: 1500 })
+                    restart_normal()
+                }, timeout = 0)
+            }, false);  // 成功 > 尝试请求域名目前防御等级
+        });
+    }
+
+    // 保存安全配置
+    function save_safe() {
+        var wait = $('.autoshield_safe #wait').val()
+        var sleep = $('.autoshield_safe #sleep').val()
+        var check = $('.autoshield_safe #check').val()
+        var load = $('.autoshield_safe #load').val()
+
+        layer.load();
+        request_plugin('set_safe', { 'wait': wait, 'sleep': sleep, 'check': check, 'load': load }, (data) => {
+            layer.msg('保存成功!', { icon: 1, time: 1500 })
+            restart_normal()
+        })
+    }
+
+    function request_plugin(function_name, args, callback, index = true, timeout = 15000) {
+        $.ajax({
+            type: 'POST',
+            url: '/plugin?action=a&s=' + function_name + '&name=autoshield',
+            data: args,
+            timeout: timeout,
+            success: function (rdata) {
+                if (!callback) {
+                    layer.msg(rdata.msg, { icon: rdata.status ? 1 : 2 });
+                    return;
+                }
+                if (index) {
+                    layer.closeAll('dialog')
+                    layer.closeAll('loading')
+                }
+                if (rdata === null) {
+                    layer.open({
+                        type: 1,
+                        title: '错误提示',
+                        area: ['50vh', '70vh'],
+                        content: "<div style='padding: 15px;'><div style='padding: 5px;border: 0.2px solid grey;border-radius:5px'>func: " + function_name + "<br> args: " + JSON.stringify(args) + "<br/>返回值为null</div><br/><p>您可以在宝塔论坛对应帖子询问以获得支持</p></div>"
+                    });
+                } else if (rdata.status != undefined && !rdata.status) {
+                    layer.open({
+                        type: 1,
+                        title: '错误提示',
+                        area: ['50vh', '70vh'],
+                        content: "<div style='padding: 15px;'><div style='padding: 5px;border: 0.2px solid grey;border-radius:5px'>" + rdata.msg + "</div><br/><p>您可以在宝塔论坛对应帖子询问以获得支持</p></div>"
+                    });
+                } else if (rdata.code == -1) {
+                    layer.msg(rdata.msg, { icon: 2 })
+                } else if (rdata.code == -2) {
+                    layer.open({
+                        type: 1,
+                        title: rdata.msg,
+                        area: ['50vh', '70vh'],
+                        content: "<div style='padding: 15px;'><p style='font-size:18px' >" + rdata.msg + "</p><br />以下内容可能会提供帮助:<br /><br /><div style='padding: 5px;border: 0.2px solid grey;border-radius:5px'>" + rdata.tip + "</div></div>"
+                    });
+                } else {
+                    return callback(rdata);
+                }
+
+            },
+            error: function (ex) {
+                layer.msg('请求过程发现错误!', { icon: 2 });
+                return callback(ex);
+            },
+            complete: function (XMLHttpRequest, status) {
+                if (status == 'timeout') {
+                    layer.msg('请求超时,请重试...', { icon: 2 });
+                }
+            }
+        });
+    }
+
+    //第一次打开窗口时调用
+    autoshield.get_index();
+
+</script>
